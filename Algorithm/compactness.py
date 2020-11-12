@@ -1,4 +1,3 @@
-import Algorithm
 import random
 import shapely
 import multiprocessing

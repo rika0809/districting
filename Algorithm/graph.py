@@ -14,39 +14,6 @@ class Cluster:
         self.nodes.append(vertex_id)
         self.neighbors = []
 
-    def combine(self, target):
-        #print("cluster" + str(self.nodes) + "has neighbors:")
-        #for i in self.neighbors:
-        #    print(i.nodes)
-        #print("target" + str(target.nodes) + "has neighbors:")
-        #for i in target.neighbors:
-        #    print(i.nodes)
-        #print()
-        if isinstance(target, Cluster):
-            for cluster in target.neighbors:
-                if self == cluster:
-                    continue
-                if self not in cluster.neighbors:
-                    cluster.neighbors.append(self)
-                if cluster not in self.neighbors:
-                    self.neighbors.append(cluster)
-
-            self.nodes = self.nodes + target.nodes
-
-            for cluster in target.neighbors:
-                cluster.neighbors.remove(target)
-
-            #print("cluster" + str(self.nodes) + "has neighbors:")
-            #for i in self.neighbors:
-            #    print(i.nodes)
-            #    print(self in i.neighbors)
-            #    print(target in i.neighbors)
-            #print()
-
-            return True
-        else:
-            return False
-
     def print_cluster(self):
         s = "["
         for node in self.nodes:
@@ -85,8 +52,10 @@ class Graph:
             self.vertices[v_id].add_neighbor(u_id)
             u_cluster = self.find_cluster(u_id)
             v_cluster = self.find_cluster(v_id)
-            u_cluster.neighbors.append(v_cluster)
-            v_cluster.neighbors.append(u_cluster)
+            if v_cluster not in u_cluster.neighbors:
+                u_cluster.neighbors.append(v_cluster)
+            if u_cluster not in v_cluster.neighbors:
+                v_cluster.neighbors.append(u_cluster)
             return True
         else:
             return False

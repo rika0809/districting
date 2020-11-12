@@ -1,6 +1,6 @@
 import json
-from Algorithm.seed import generate_seed
-from Algorithm.graph import Graph, Vertex
+from seed import generate_seed
+from graph import Graph, Vertex
 
 if __name__ == '__main__':
     with open('GA_precincts_simplified_plus (1).json') as f:
@@ -20,4 +20,4 @@ if __name__ == '__main__':
             graph.add_edge(id, neighbor_id)
 
     generate_seed(graph, 14)
-    # graph.print_clusters()
+    graph.print_clusters()
