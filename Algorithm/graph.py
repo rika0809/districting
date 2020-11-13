@@ -118,5 +118,8 @@ class Graph:
     def Clusters(self):
         return self.clusters
 
+    def Nodes(self):
+        return self.nodes
+
     def remove_cluster(self, cluster):
         self.clusters.remove(cluster)
