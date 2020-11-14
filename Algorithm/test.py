@@ -9,10 +9,10 @@ graph.add_edge_forms([(6, 7), (7, 8), (8, 5), (5, 6), (8, 9), (9, 10), (10, 5), 
 
 generate_seed(graph, 3)
 graph.print_clusters()
-print()
+print("after merging:")
 
 rebalance(graph)
-graph.print_clusters()
+
 
 
 

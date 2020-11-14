@@ -1,40 +1,36 @@
 import random
 
 
-def merge(cluster, neighbor, graph):
-    cluster.setNodes(cluster.Nodes() + neighbor.Nodes())
+def merge(cluster, target, graph):
+    cluster.nodes = cluster.nodes + target.nodes
     cluster.update_pop()
     cluster.update_edges()
 
-    for clu in neighbor.Neighbors():
+    for clu in target.neighbors:
         if cluster == clu:
             continue
-        if cluster not in clu.Neighbors():
+        if cluster not in clu.neighbors:
             clu.add_neighbor(cluster)
-        if clu not in cluster.Neighbors():
+        if clu not in cluster.neighbors:
             cluster.add_neighbor(clu)
 
-    for clu in graph.Clusters():
-        if neighbor in clu.Neighbors():
-            clu.remove_neighbor(neighbor)
+    for clu in graph.clusters:
+        if target in clu.neighbors:
+            clu.remove_neighbor(target)
 
-    graph.remove_cluster(neighbor)
+    graph.remove_cluster(target)
 
 
 def generate_seed(graph, n):
-    while len(graph.clusters) != n:
-        clusters = graph.Clusters()
-        cluster = random.choice(clusters)
-        neighbor = random.choice(cluster.Neighbors())
-
-        #graph.clusters.remove(neighbor_cluster)
-        #cluster.combine(neighbor_cluster)
-        merge(cluster, neighbor, graph)
-
     for cluster in graph.clusters:
-        if len(cluster.nodes) == 1:
-            node = cluster.nodes[0]
-            for neighbor_node in node.neighbors:
-                cluster.edge_cut.append((node.id, neighbor_node.id))
+        cluster.update_edges()
+
+    while len(graph.clusters) != n:
+        clusters = graph.clusters
+        cluster = random.choice(clusters)
+        target = random.choice(cluster.neighbors)
+        merge(cluster, target, graph)
+
+
 
 

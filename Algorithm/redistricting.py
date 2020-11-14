@@ -14,7 +14,7 @@ def plot(graph):
     colormap = []
 
     for node in graph.nodes:
-        nodes.append(node.Id())
+        nodes.append(node.id)
     G.add_nodes_from(nodes)
 
     for node in G:
@@ -28,30 +28,6 @@ def plot(graph):
     ax[0].set_axis_off()
     plt.show()
     return
-
-
-def combine(clusterOne, clusterTwo):
-    # self.nodes = []
-    # self.edges = []
-    # self.edge_cut = []
-    # self.neighbors = []
-    # if node != None:
-    #    self.id = node.Id()
-    #    self.pop = node.pop
-    #    self.nodes.append(node)
-    # else:
-    #    self.id = 0
-    #    self.pop = 0
-    clusterOne.nodes = clusterOne.nodes + clusterTwo.nodes
-
-    mergedCluster = Cluster()
-    mergedCluster.nodes = clusterOne.nodes + clusterTwo.nodes
-    mergedCluster.edges = clusterOne.edges + clusterTwo.edges
-    for u_id, v_id in clusterOne.edge_cut:
-        for node in clusterTwo.nodes:
-            if node.id == u_id or node.id == v_id:
-                mergedCluster.edges.append((u_id, v_id))
-    return mergedCluster
 
 
 def BFS(cluster):
@@ -87,7 +63,6 @@ def BFS(cluster):
 def generate_tree(cluster, graph):
     newEdges = BFS(cluster)
     oldEdges = cluster.edges
-    nodes = cluster.nodes
 
     for u_id, v_id in oldEdges:
         u = graph.find_node(u_id)
@@ -112,8 +87,9 @@ def generate_tree(cluster, graph):
 
 
 def rebalance(graph):
-    clusterOne = random.choice(graph.Clusters())
-    clusterTwo = random.choice(clusterOne.Neighbors())
+    clusterOne = random.choice(graph.clusters)
+    clusterTwo = random.choice(clusterOne.neighbors)
     merge(clusterOne, clusterTwo, graph)
     generate_tree(clusterOne, graph)
+    graph.print_clusters()
     plot(graph)

@@ -8,12 +8,6 @@ class Node:
         if neighbor_node not in self.neighbors:
             self.neighbors.append(neighbor_node)
 
-    def Id(self):
-        return self.id
-
-    def Pop(self):
-        return self.pop
-
 
 class Cluster:
     def __init__(self, node=None):
@@ -22,30 +16,18 @@ class Cluster:
         self.edge_cut = []
         self.neighbors = []
         if node != None:
-            self.id = node.Id()
+            self.id = node.id
             self.pop = node.pop
             self.nodes.append(node)
         else:
             self.id = 0
             self.pop = 0
 
-    def Id(self):
-        return self.id
-
-    def Nodes(self):
-        return self.nodes
-
-    def Neighbors(self):
-        return self.neighbors
-
     def add_neighbor(self, cluster):
         self.neighbors.append(cluster)
 
     def remove_neighbor(self, cluster):
         self.neighbors.remove(cluster)
-
-    def setNodes(self, nodes):
-        self.nodes = nodes
 
     def update_pop(self):
         self.pop = 0
@@ -78,9 +60,9 @@ class Cluster:
 
         for node in self.nodes:
             if node != self.nodes[-1]:
-                s += str(node.Id()) + ","
+                s += str(node.id) + ","
             else:
-                s += str(node.Id()) + "]"
+                s += str(node.id) + "]"
 
         print(s)
         print("-------------------------------------------")
@@ -95,20 +77,20 @@ class Graph:
 
     def find_cluster(self, node):
         for cluster in self.clusters:
-            if node in cluster.Nodes():
+            if node in cluster.nodes:
                 return cluster
         return None
 
     def find_node(self, n_id):
         for node in self.nodes:
-            if node.Id() == n_id:
+            if node.id == n_id:
                 return node
         return None
 
     def add_node(self, node):
         self.nodes.append(node)
         self.clusters.append(Cluster(node))
-        self.pop += node.Pop()
+        self.pop += node.pop
 
     def add_edge(self, u_id, v_id):
         u = self.find_node(u_id)
@@ -119,11 +101,10 @@ class Graph:
             self.edges.append((u_id, v_id))
             u_cluster = self.find_cluster(u)
             v_cluster = self.find_cluster(v)
-            if v_cluster not in u_cluster.Neighbors():
+            if v_cluster not in u_cluster.neighbors:
                 u_cluster.add_neighbor(v_cluster)
-            if u_cluster not in v_cluster.Neighbors():
+            if u_cluster not in v_cluster.neighbors:
                 v_cluster.add_neighbor(u_cluster)
-
 
     def add_node_forms(self, node_forms, pop_forms):
         for i in range(len(node_forms)):
@@ -143,12 +124,6 @@ class Graph:
 
     def idealPop(self):
         return self.pop / len(self.clusters)
-
-    def Clusters(self):
-        return self.clusters
-
-    def Nodes(self):
-        return self.nodes
 
     def remove_cluster(self, cluster):
         self.clusters.remove(cluster)
