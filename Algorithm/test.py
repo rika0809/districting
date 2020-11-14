@@ -1,47 +1,29 @@
-import networkx as nx
-import matplotlib.pyplot as plt
 import random
 from graph import Graph
 from seed import generate_seed
 from redistricting import rebalance
 
-
-def BFS(cluster):
-    edges = []
-    nodes = cluster.nodes
-    s = random.choice(range(len(nodes)))
-    node = nodes[s]
-
-    visited = [False] * len(nodes)
-
-    queue = []
-
-    queue.append(node)
-
-    visited[s] = True
-
-    while len(queue)>0:
-        node = queue.pop(0)
-        u_id = node.id
-        for neighbor in node.neighbors:
-            if neighbor in nodes:
-                s = nodes.index(neighbor)
-                if not visited[s]:
-                    v_id = neighbor.id
-                    edges.append((u_id, v_id))
-                    visited[s] = True
-                    queue.append(nodes[s])
-            else:
-                continue
-    return edges
-
 graph = Graph()
 graph.add_node_forms([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], [32,24,57,13,43, 34, 67, 35,58,54,27,48,90,46,23])
 graph.add_edge_forms([(6, 7), (7, 8), (8, 5), (5, 6), (8, 9), (9, 10), (10, 5), (5, 4), (4, 3), (3, 11), (11, 10), (10, 12), (10, 15), (11, 12), (12, 15), (14, 15), (13, 14), (13, 1), (12, 13), (1, 2)])
 
-
 generate_seed(graph, 3)
 graph.print_clusters()
+print()
+
+rebalance(graph)
+graph.print_clusters()
+
+
+
+
+
+
+
+
+
+
+
 #BFS(graph.clusters[0])
 #print()
 
@@ -55,10 +37,10 @@ graph.print_clusters()
 #print(graph.clusters[2].edges)
 #print(graph.clusters[2].edge_cut)
 
-c = rebalance(graph)
-G = nx.Graph()
-nodes = []
-edges = BFS(c)
+#c = rebalance(graph)
+#G = nx.Graph()
+#nodes = []
+#edges = BFS(c)
 #for node in c.nodes:
 #    nodes.append(node.Id())
 #G.add_nodes_from(nodes)

@@ -113,15 +113,17 @@ class Graph:
     def add_edge(self, u_id, v_id):
         u = self.find_node(u_id)
         v = self.find_node(v_id)
-        u.add_neighbor(v)
-        v.add_neighbor(u)
-        self.edges.append((u_id, v_id))
-        u_cluster = self.find_cluster(u)
-        v_cluster = self.find_cluster(v)
-        if v_cluster not in u_cluster.Neighbors():
-            u_cluster.add_neighbor(v_cluster)
-        if u_cluster not in v_cluster.Neighbors():
-            v_cluster.add_neighbor(u_cluster)
+        if u not in v.neighbors and v not in u.neighbors:
+            u.add_neighbor(v)
+            v.add_neighbor(u)
+            self.edges.append((u_id, v_id))
+            u_cluster = self.find_cluster(u)
+            v_cluster = self.find_cluster(v)
+            if v_cluster not in u_cluster.Neighbors():
+                u_cluster.add_neighbor(v_cluster)
+            if u_cluster not in v_cluster.Neighbors():
+                v_cluster.add_neighbor(u_cluster)
+
 
     def add_node_forms(self, node_forms, pop_forms):
         for i in range(len(node_forms)):
