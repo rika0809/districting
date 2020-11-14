@@ -16,12 +16,21 @@ class Node:
 
 
 class Cluster:
-    def __init__(self, node):
-        self.id = node.Id()
+    def __init__(self, node=None):
         self.nodes = []
-        self.nodes.append(node)
+        self.edges = []
+        self.edge_cut = []
         self.neighbors = []
-        self.pop = node.pop
+        if node != None:
+            self.id = node.Id()
+            self.pop = node.pop
+            self.nodes.append(node)
+        else:
+            self.id = 0
+            self.pop = 0
+
+    def Id(self):
+        return self.id
 
     def Nodes(self):
         return self.nodes
@@ -43,8 +52,23 @@ class Cluster:
         for node in self.nodes:
             self.pop += node.pop
 
+    def update_edges(self):
+        self.edges = []
+        self.edge_cut = []
+        for node in self.nodes:
+            u_id = node.id
+            for neighbor in node.neighbors:
+                v_id = neighbor.id
+                if neighbor in self.nodes:
+                    if ((u_id, v_id) not in self.edges) and ((v_id, u_id) not in self.edges):
+                        self.edges.append((u_id, v_id))
+                else:
+                    if ((u_id, v_id) not in self.edge_cut) and ((v_id, u_id) not in self.edge_cut):
+                        self.edge_cut.append((u_id, v_id))
+
     def print_cluster(self):
-        s = "ID: " + str(self.id) + ", Population: " + str(self.pop) + ", Neighbors:["
+        s = "ID: " + str(self.id) + ", Population: " + str(self.pop) + ", Edge-cut: " + str(
+            len(self.edge_cut)) + ", Neighbors:["
 
         for cluster in self.neighbors:
             if cluster != self.neighbors[-1]:
@@ -114,6 +138,9 @@ class Graph:
 
     def totPop(self):
         return self.pop
+
+    def idealPop(self):
+        return self.pop / len(self.clusters)
 
     def Clusters(self):
         return self.clusters

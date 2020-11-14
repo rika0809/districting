@@ -20,5 +20,6 @@ if __name__ == '__main__':
             graph.add_edge(id, neighbor_id)
 
     generate_seed(graph, 14)
-    print("Total population: " + str(graph.totPop()))
+    #print("Total population: " + str(graph.totPop()))
     graph.print_clusters()
+    print(graph.idealPop())

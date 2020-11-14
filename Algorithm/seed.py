@@ -4,6 +4,7 @@ import random
 def merge(cluster, neighbor, graph):
     cluster.setNodes(cluster.Nodes() + neighbor.Nodes())
     cluster.update_pop()
+    cluster.update_edges()
 
     for clu in neighbor.Neighbors():
         if cluster == clu:
@@ -30,5 +31,10 @@ def generate_seed(graph, n):
         #cluster.combine(neighbor_cluster)
         merge(cluster, neighbor, graph)
 
+    for cluster in graph.clusters:
+        if len(cluster.nodes) == 1:
+            node = cluster.nodes[0]
+            for neighbor_node in node.neighbors:
+                cluster.edge_cut.append((node.id, neighbor_node.id))
 
 
