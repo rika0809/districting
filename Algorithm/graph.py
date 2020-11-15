@@ -1,8 +1,19 @@
-class Node:
-    def __init__(self, id, pop):
+class TreeNode:
+    def __init__(self, id):
         self.id = id
         self.neighbors = []
-        self.pop = pop
+
+    def add_neighbor(self, neighbor_id):
+        if neighbor_id not in self.neighbors:
+            self.neighbors.append(neighbor_id)
+
+
+class Node:
+    def __init__(self, id, pop=None):
+        self.id = id
+        self.neighbors = []
+        if pop != None:
+            self.pop = pop
 
     def add_neighbor(self, neighbor_node):
         if neighbor_node not in self.neighbors:
@@ -69,11 +80,15 @@ class Cluster:
 
 
 class Graph:
-    def __init__(self):
+    def __init__(self, numCluster, populationVariation):
         self.nodes = []
         self.clusters = []
         self.edges = []
         self.pop = 0
+        self.numCluster = numCluster
+        self.populationVariation = populationVariation
+        self.lowerBound = 0
+        self.upperBound = 0
 
     def find_cluster(self, node):
         for cluster in self.clusters:
@@ -91,6 +106,7 @@ class Graph:
         self.nodes.append(node)
         self.clusters.append(Cluster(node))
         self.pop += node.pop
+        self.updateBounds()
 
     def add_edge(self, u_id, v_id):
         u = self.find_node(u_id)
@@ -116,6 +132,7 @@ class Graph:
             self.add_edge(u_id, v_id)
 
     def print_clusters(self):
+        print("Population valid range:" + str(int(self.lowerBound)) + "-" + str(int(self.upperBound)))
         for cluster in self.clusters:
             cluster.print_cluster()
 
@@ -127,3 +144,8 @@ class Graph:
 
     def remove_cluster(self, cluster):
         self.clusters.remove(cluster)
+
+    def updateBounds(self):
+        ideal = self.pop/self.numCluster
+        self.lowerBound = ideal - ideal * self.populationVariation
+        self.upperBound = ideal + ideal * self.populationVariation

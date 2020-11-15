@@ -21,7 +21,8 @@ def merge(cluster, target, graph):
     graph.remove_cluster(target)
 
 
-def generate_seed(graph, n):
+def generate_seed(graph):
+    n = graph.numCluster
     for cluster in graph.clusters:
         cluster.update_edges()
 
