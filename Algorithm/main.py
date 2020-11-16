@@ -15,7 +15,7 @@ if __name__ == '__main__':
     with open('GA_precincts_simplified_plus (1).json') as f:
         data = json.load(f)
 
-    graph = Graph(14, 0.1)
+    graph = Graph(14, 0.1, 100)
 
     for i in range(len(data['features'])):
         node = Node(data['features'][i]['properties']['ID'], data['features'][i]['properties']['TOTPOP'])
@@ -54,7 +54,7 @@ if __name__ == '__main__':
     nx.draw(G1, with_labels=True, ax=ax[0])
     ax[0].set_axis_off()
 
-
+    #graph.print_clusters()
     rebalance(graph)
 
     nodes = []
@@ -63,7 +63,6 @@ if __name__ == '__main__':
     for cluster in graph.clusters:
         nodes.append(cluster.id)
     G2.add_nodes_from(nodes)
-    print(len(nodes))
 
     for cluster in graph.clusters:
         u_id = cluster.id
@@ -77,4 +76,4 @@ if __name__ == '__main__':
     nx.draw(G2, with_labels=True, ax=ax[1])
     ax[1].set_axis_off()
 
-    plt.show()
+    #plt.show()

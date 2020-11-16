@@ -80,7 +80,7 @@ class Cluster:
 
 
 class Graph:
-    def __init__(self, numCluster, populationVariation):
+    def __init__(self, numCluster, populationVariation, edgeCut):
         self.nodes = []
         self.clusters = []
         self.edges = []
@@ -89,6 +89,7 @@ class Graph:
         self.populationVariation = populationVariation
         self.lowerBound = 0
         self.upperBound = 0
+        self.edgeCut = edgeCut
 
     def find_cluster(self, node):
         for cluster in self.clusters:
@@ -133,6 +134,7 @@ class Graph:
 
     def print_clusters(self):
         print("Population valid range:" + str(int(self.lowerBound)) + "-" + str(int(self.upperBound)))
+        print("Edge cut valid range: "+ str(self.edgeCut))
         for cluster in self.clusters:
             cluster.print_cluster()
 

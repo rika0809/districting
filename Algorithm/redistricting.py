@@ -47,7 +47,7 @@ def generate_tree(cluster):
     while len(queue) > 0:
         sourceNode = queue.pop(0)
         u_id = sourceNode.id
-        #print("node" + str(u_id))
+        # print("node" + str(u_id))
         for neighbor in sourceNode.neighbors:
             if neighbor in cluster.nodes:
                 s = cluster.nodes.index(neighbor)
@@ -101,23 +101,37 @@ def getClusterNodes(treeNodes, sourceNodeOne, sourceNodeTwo):
     return nodesOne
 
 
-def split(graph, edge, cluster):
-    u_id, v_id = edge
-    u = graph.find_node(u_id)
-    v = graph.find_node(v_id)
-
-    return
+def isAcceptable(cluster, graph):
+    upper = int(graph.upperBound)
+    lower = int(graph.lowerBound)
+    if upper >= cluster.pop >= lower and len(cluster.edge_cut) <graph.edgeCut:
+        return True
+    else:
+        return False
 
 
 def rebalance(graph):
+    print("Ideal population: " + str(graph.idealPop()))
+    print("Population valid range: " + str(int(graph.lowerBound)) + "-" + str(int(graph.upperBound)))
+    print("Edge cut valid range: " + str(graph.edgeCut))
     clusterOne = random.choice(graph.clusters)
     clusterTwo = random.choice(clusterOne.neighbors)
-    print("\n After rebalance: cluster[" + str(clusterOne.id)+"] and cluster[" + str(clusterTwo.id)+"]\n")
-    print(len(graph.clusters))
+
+
+    print("cluster[" + str(clusterOne.id) + "] population: " + str(clusterOne.pop) + ", Edge cut: " + str(len(clusterOne.edge_cut)))
+    print("cluster[" + str(clusterTwo.id) + "] population: " + str(clusterTwo.pop) + ", Edge cut: " + str(len(clusterTwo.edge_cut)))
+
+    # old population vartion
+    clusterOneVariation = abs(clusterOne.pop - graph.idealPop())
+    clusterTwoVariation = abs(clusterTwo.pop - graph.idealPop())
+    totalVariation = clusterOneVariation + clusterTwoVariation
+    totalEdgeCut = len(clusterOne.edge_cut) + len(clusterTwo.edge_cut)
+    print("Old variation: " + str(int(totalVariation)))
+
+    print()
     merge(clusterOne, clusterTwo, graph)
 
     treeNodes, treeEdges = generate_tree(clusterOne)
-    
 
     # split two clusters
     while (1):
@@ -152,8 +166,28 @@ def rebalance(graph):
                 newclusterTwo.nodes.append(node)
         newclusterTwo.update_edges()
         newclusterTwo.update_pop()
+
+        a = isAcceptable(newclusterOne, graph)
+        b = isAcceptable(newclusterTwo, graph)
+
+        print("new cluster[" + str(newclusterOne.id) + "] population: " + str(newclusterOne.pop) + ", Edge cut: " + str(len(newclusterOne.edge_cut)))
+        print("new cluster[" + str(newclusterTwo.id) + "] population: " + str(newclusterTwo.pop) + ", Edge cut: " + str(len(newclusterTwo.edge_cut)))
+
+        if a == True and b == True:
+            break
+
+        newClusterOneVariation = abs(newclusterOne.pop - graph.idealPop())
+        newClusterTwoVariation = abs(newclusterTwo.pop - graph.idealPop())
+        newTotalVariation = newClusterOneVariation + newClusterTwoVariation
+        newTotalEdgeCut = len(newclusterOne.edge_cut) + len(newclusterTwo.edge_cut)
+        print("New variation: " + str(newTotalVariation))
+        print()
+        if newTotalVariation <= totalVariation:
+            break
+        if newTotalEdgeCut <= totalEdgeCut:
+            break
     ############################
-    print("new clusters:" + str(newclusterOne.id) + ", "+ str(newclusterTwo.id))
+
     for node in newclusterOne.nodes:
         for neighborNode in node.neighbors:
             if neighborNode not in newclusterOne.nodes:
@@ -187,7 +221,5 @@ def rebalance(graph):
 
     graph.clusters.append(newclusterOne)
     graph.clusters.append(newclusterTwo)
-
-    print(len(graph.clusters))
-    #graph.print_clusters()
+    # graph.print_clusters()
     # plot(graph)
