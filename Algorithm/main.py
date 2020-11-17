@@ -54,8 +54,11 @@ if __name__ == '__main__':
     nx.draw(G1, with_labels=True, ax=ax[0])
     ax[0].set_axis_off()
 
-    #graph.print_clusters()
+    graph.print_clusters()
+    print("\n\n After iteration:")
     rebalance(graph)
+
+    graph.print_clusters()
 
     nodes = []
     edges = []
@@ -76,4 +79,4 @@ if __name__ == '__main__':
     nx.draw(G2, with_labels=True, ax=ax[1])
     ax[1].set_axis_off()
 
-    #plt.show()
+    plt.show()
