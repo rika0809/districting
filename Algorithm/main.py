@@ -7,6 +7,11 @@ from seed import generate_seed
 from graph import Graph, Node
 from redistricting import rebalance
 
+from shapely.geometry import Polygon
+from shapely.ops import cascaded_union
+from shapely.geometry import shape, mapping
+import math
+
 
 
 
@@ -18,6 +23,7 @@ if __name__ == '__main__':
     graph = Graph(14, 0.1, 100)
 
     for i in range(len(data['features'])):
+        #polygon = shape(data['features'][i]['geometry'])
         node = Node(data['features'][i]['properties']['ID'], data['features'][i]['properties']['TOTPOP'])
         graph.add_node(node)
 
@@ -55,10 +61,10 @@ if __name__ == '__main__':
     ax[0].set_axis_off()
 
     graph.print_clusters()
-    print("\n\n After iteration:")
-    rebalance(graph)
+    #print("\n\n After iteration:")
+    #rebalance(graph)
 
-    graph.print_clusters()
+    #graph.print_clusters()
 
     nodes = []
     edges = []
@@ -79,4 +85,4 @@ if __name__ == '__main__':
     nx.draw(G2, with_labels=True, ax=ax[1])
     ax[1].set_axis_off()
 
-    plt.show()
+    #plt.show()

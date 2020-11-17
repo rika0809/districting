@@ -1,3 +1,5 @@
+from compactness import calculate
+
 class TreeNode:
     def __init__(self, id):
         self.id = id
@@ -9,11 +11,15 @@ class TreeNode:
 
 
 class Node:
-    def __init__(self, id, pop=None):
+    def __init__(self, id, pop=None, shape=None):
         self.id = id
         self.neighbors = []
+
         if pop != None:
             self.pop = pop
+
+        if shape != None:
+            self.shape = shape
 
     def add_neighbor(self, neighbor_node):
         if neighbor_node not in self.neighbors:
@@ -61,7 +67,7 @@ class Cluster:
 
     def print_cluster(self):
         s = "ID: " + str(self.id) + ", Population: " + str(self.pop) + ", Edge-cut: " + str(
-            len(self.edge_cut)) + ", Neighbors:["
+            len(self.edge_cut)) +  ", Neighbors:[" #", geo compactness: " + str(calculate(self)) +
 
         for cluster in self.neighbors:
             if cluster != self.neighbors[-1]:

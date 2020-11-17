@@ -113,21 +113,16 @@ def isAcceptable(cluster, graph):
 def calculateScore(variation, edgeCut):
     score = 0
     if variation > 1000000:
-        score += (10 - int(variation / 1000000))
+        score += 2 * (10 - int(variation / 1000000))
     if 100000 < variation <= 1000000:
-        score += (10 - int(variation / 100000))
-        score += 10
-    if 10000 < variation <= 100000:
-        score += (10 - int(variation / 10000))
+        score += 2 * (10 - int(variation / 100000))
         score += 20
-    if 1000 < variation <= 10000:
-        score += (10 - int(variation / 1000))
-        score += 30
-    if 100 < variation <= 1000:
-        score += (10 - int(variation/ 100))
+    if 10000 < variation <= 100000:
+        score += 2 * (10 - int(variation / 10000))
         score += 40
-    if 10 < variation <= 100:
+    if variation <= 10000:
         score += 50
+
 
     if edgeCut > 100:
         score += (10 - int(edgeCut / 100))
@@ -231,9 +226,9 @@ def rebalance(graph):
                 break
             else:
                 m += 1
-                #if(m>30):
-                    #print("Old variation: " + str(int(totalVariation)))
-                    #print("New variation: " + str(newTotalVariation))
+                if(m>150):
+                    print("Old variation: " + str(int(totalVariation)))
+                    print("New variation: " + str(newTotalVariation))
                 continue
 
 
