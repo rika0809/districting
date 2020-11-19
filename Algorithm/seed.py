@@ -3,28 +3,31 @@ import random
 
 def merge(cluster, target, graph):
     cluster.nodes = cluster.nodes + target.nodes
-    cluster.update_pop()
-    cluster.update_edges()
+    cluster.updatePop()
+    cluster.updateEdges()
 
     for clu in target.neighbors:
         if cluster == clu:
+            clu.removeNeighbor(target)
             continue
         if cluster not in clu.neighbors:
-            clu.add_neighbor(cluster)
+            clu.addNeighbor(cluster)
         if clu not in cluster.neighbors:
-            cluster.add_neighbor(clu)
+            cluster.addNeighbor(clu)
+        clu.removeNeighbor(target)
 
-    for clu in graph.clusters:
-        if target in clu.neighbors:
-            clu.remove_neighbor(target)
+    #for clu in graph.clusters:
+    #    if target in clu.neighbors:
+    #        clu.removeNeighbor(target)
 
-    graph.remove_cluster(target)
+    graph.removeCluster(target)
 
 
-def generate_seed(graph):
-    n = graph.numCluster
+def generateSeed(graph):
+    n = graph.numCluster # n districts
+
     for cluster in graph.clusters:
-        cluster.update_edges()
+        cluster.updateEdges()
 
     while len(graph.clusters) != n:
         clusters = graph.clusters

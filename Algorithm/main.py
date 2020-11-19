@@ -1,41 +1,41 @@
 import json
-
 import networkx as nx
 import matplotlib.pyplot as plt
 
-from seed import generate_seed
-from graph import Graph, Node
 from redistricting import rebalance
+from seed import generateSeed
+from graph import Graph, Node
 
-from shapely.geometry import Polygon
-from shapely.ops import cascaded_union
-from shapely.geometry import shape, mapping
-import math
-
-
-
-
+path = 'GA_precincts_simplified_plus (1).json'
 
 if __name__ == '__main__':
-    with open('GA_precincts_simplified_plus (1).json') as f:
+    with open(path) as f:
         data = json.load(f)
 
-    graph = Graph(14, 0.1, 100)
+    graph = Graph(14, 0.1, 100) # number of districts=14 ,1/2population variation: 0.9ideal~1.1ideal, edge-cut< 100
 
     for i in range(len(data['features'])):
-        #polygon = shape(data['features'][i]['geometry'])
         node = Node(data['features'][i]['properties']['ID'], data['features'][i]['properties']['TOTPOP'])
-        graph.add_node(node)
+        graph.addNode(node)
 
     for i in range(len(data['features'])):
         id = data['features'][i]['properties']['ID']
-        neighbors_id = data['features'][i]['properties']['Neighbors']
+        neighborsId = data['features'][i]['properties']['Neighbors']
 
-        for neighbor_id in neighbors_id:
-            graph.add_edge(id, neighbor_id)
+        for neighborId in neighborsId:
+            graph.addEdge(id, neighborId)
 
-    generate_seed(graph)
+    graph.idealPop = int(graph.pop/graph.numCluster)
 
+    generateSeed(graph)
+
+    print("Ideal population: " + str(graph.idealPop))
+    print("Population variation: " + str(2 * graph.populationVariation))
+    print("Population valid range: " + str(graph.lowerBound) + "-" + str(graph.upperBound))
+    print("Edge cut valid range: 0-" + str(graph.edgeCut))
+    print('\n')
+
+    ###################
     G1 = nx.Graph()
     G2 = nx.Graph()
     fig, axes = plt.subplots(nrows=1, ncols=2)
@@ -59,13 +59,30 @@ if __name__ == '__main__':
 
     nx.draw(G1, with_labels=True, ax=ax[0])
     ax[0].set_axis_off()
+    ###################
 
-    graph.print_clusters()
-    #print("\n\n After iteration:")
-    #rebalance(graph)
 
-    #graph.print_clusters()
 
+
+
+    graph.printClusters()
+
+    print("\n\nRebalance...\n")
+    print("--------------------------------------------------------------------------")
+    rebalance(graph)
+
+
+
+
+
+
+
+
+
+
+
+
+    ###################
     nodes = []
     edges = []
 
@@ -85,4 +102,4 @@ if __name__ == '__main__':
     nx.draw(G2, with_labels=True, ax=ax[1])
     ax[1].set_axis_off()
 
-    #plt.show()
+    plt.show()
