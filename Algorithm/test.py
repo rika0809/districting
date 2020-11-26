@@ -17,4 +17,4 @@ graph.printClusters()
 
 print("\n\nRebalancing:...\n")
 print("--------------------------------------------------------------------------")
-rebalance(graph, 2)
+rebalance(graph, 1)

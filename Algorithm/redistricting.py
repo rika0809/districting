@@ -1,5 +1,8 @@
 import random
 from graph import Cluster, TreeNode
+from seed import combine
+
+MERGEDCLUSTERID = 9999
 
 
 def generateTree(cluster):
@@ -207,29 +210,24 @@ def split(cutEdge, treeNodes, mergedCluster, graph):
     graph.clusters.append(newClusterTwo)
 
 
-def merge(cluster, target, graph):
+def merge(clusterOne, clusterTwo, graph):
     mergedCluster = Cluster()
 
-    mergedCluster.nodes = cluster.nodes + target.nodes
-
+    mergedCluster.nodes = clusterOne.nodes + clusterTwo.nodes
     mergedCluster.updatePop()
     mergedCluster.updateEdges()
 
-    for clu in target.neighbors:
-        if cluster == clu:
-            clu.removeNeighbor(target)
-            continue
-        if cluster not in clu.neighbors:
-            clu.addNeighbor(cluster)
-        if clu not in cluster.neighbors:
-            cluster.addNeighbor(clu)
-        clu.removeNeighbor(target)
+    for neighborCluster in clusterOne.neighbors:
+        if neighborCluster!=clusterTwo and neighborCluster not in mergedCluster.neighbors:
+            mergedCluster.neighbors.append(neighborCluster)
 
-    # for clu in graph.clusters:
-    #    if target in clu.neighbors:
-    #        clu.removeNeighbor(target)
+    for neighborCluster in clusterTwo.neighbors:
+        if neighborCluster!=clusterOne and neighborCluster not in mergedCluster.neighbors:
+            mergedCluster.neighbors.append(neighborCluster)
 
-    graph.removeCluster(target)
+    mergedCluster.id = MERGEDCLUSTERID
+
+    return mergedCluster
 
 
 def rebalance(graph, iterationLimit):
@@ -245,19 +243,21 @@ def rebalance(graph, iterationLimit):
         clusterTwoVariation = abs(clusterTwo.pop - idealPop)
         totalVariation = clusterOneVariation + clusterTwoVariation
 
-        print("Merging...")
-        merge(clusterOne, clusterTwo, graph)
+        # assume to merge the clusters
+        mergedCluster = merge(clusterOne, clusterTwo, graph)
 
         print("Generating Spinning Tree...")
-        treeNodes, treeEdges = generateTree(clusterOne)
+        treeNodes, treeEdges = generateTree(mergedCluster)
 
         print("Spinning Tree: " + str(treeEdges))
         print("Finding an feasible edge...")
-        cutEdge = findEdge(clusterOne, graph, treeNodes, treeEdges, totalVariation)
+        cutEdge = findEdge(mergedCluster, graph, treeNodes, treeEdges, totalVariation)
 
         if cutEdge == None:
-            print("Feasible edge couldn't be found after 500 iterations. Leave the original clusters as they were")
+            print("Feasible edge couldn't be found after 500 iterations. Leave the original clusters as they were\n")
         else:
+            # merge the clusters in real
+            combine(clusterOne, clusterTwo, graph)
             split(cutEdge, treeNodes, clusterOne, graph)
             graph.printClusters()
             print("--------------------------------------------------------------------------")

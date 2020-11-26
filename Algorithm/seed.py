@@ -1,7 +1,7 @@
 import random
 
 
-def merge(cluster, target, graph):
+def combine(cluster, target, graph):
     cluster.nodes = cluster.nodes + target.nodes
     cluster.updatePop()
     cluster.updateEdges()
@@ -33,7 +33,7 @@ def generateSeed(graph):
         clusters = graph.clusters
         cluster = random.choice(clusters)
         target = random.choice(cluster.neighbors)
-        merge(cluster, target, graph)
+        combine(cluster, target, graph)
 
 
 
