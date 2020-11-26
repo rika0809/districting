@@ -5,6 +5,7 @@ from seed import combine
 MERGEDCLUSTERID = 9999
 
 
+# BFS to generate a spinning tree
 def generateTree(cluster):
     treeNodes = []
     treeEdges = []
@@ -27,6 +28,7 @@ def generateTree(cluster):
             if neighbor in cluster.nodes:
                 s = cluster.nodes.index(neighbor)
                 if not visited[s]:
+
                     # add treeEdge
                     vid = neighbor.id
                     treeEdges.append((uid, vid))
@@ -44,6 +46,7 @@ def generateTree(cluster):
     return treeNodes, treeEdges
 
 
+# BFS to traverse a cluster and get node
 def getClusterNodes(treeNodes, sourceNodeOne, sourceNodeTwo):
     nodesOne = []
     s = 0
@@ -62,13 +65,16 @@ def getClusterNodes(treeNodes, sourceNodeOne, sourceNodeTwo):
         sourceNode = queue.pop(0)
         nodesOne.append(sourceNode.id)
         for neighborId in sourceNode.neighbors:
-            if neighborId != sourceNodeTwo.id:
+            if neighborId != sourceNodeTwo.id:  # don't enter the node on the other cluster
+
+                # get the neighborNode
                 neighborNode = None
                 for i in range(len(treeNodes)):
                     if treeNodes[i].id == neighborId:
                         neighborNode = treeNodes[i]
                         s = i
                         break
+
                 if not visited[s]:
                     visited[s] = True
                     queue.append(neighborNode)
@@ -78,6 +84,7 @@ def getClusterNodes(treeNodes, sourceNodeOne, sourceNodeTwo):
     return nodesOne
 
 
+# if a single cluster is acceptable?
 def isAcceptable(cluster, graph):
     upper = graph.upperBound
     lower = graph.lowerBound
@@ -87,6 +94,7 @@ def isAcceptable(cluster, graph):
         return False
 
 
+# if all clusters on the graph acceptable?
 def isAllAcceptable(graph):
     for cluster in graph.clusters:
         if not isAcceptable(cluster, graph):
@@ -94,6 +102,7 @@ def isAllAcceptable(graph):
     return True
 
 
+# create new cluster
 def getNewCluster(id, nodes, mergedCluster):
     newcluster = Cluster()
 
@@ -113,27 +122,32 @@ def updateNeighbors(clusterOne, clusterTwo, mergedCluster, graph):
             if neighborNode not in clusterOne.nodes and neighborNode not in clusterTwo.nodes:  # it's an external node
                 neighborCluster = graph.findCluster(neighborNode)  # find the external cluster the node belongs to
 
+                # update clusterOne's neighbors and surrounded clusters's neighbors
                 if mergedClusterNode in clusterOne.nodes:
                     if neighborCluster not in clusterOne.neighbors:
                         clusterOne.neighbors.append(neighborCluster)
                     if clusterOne not in neighborCluster.neighbors:
                         neighborCluster.neighbors.append(clusterOne)
 
+                # update clusterTwo's neighbors and surrounded clusters's neighbors
                 if mergedClusterNode in clusterTwo.nodes:
                     if neighborCluster not in clusterTwo.neighbors:
                         clusterTwo.neighbors.append(neighborCluster)
                     if clusterTwo not in neighborCluster.neighbors:
                         neighborCluster.neighbors.append(clusterTwo)
 
+    # add each other as neighbor
     clusterOne.neighbors.append(clusterTwo)
     clusterTwo.neighbors.append(clusterOne)
 
 
+# for example, parameter: edge(1,2), return node(1), node(2)
 def findNodesOnCutEdge(treeNodes, cutEdge):
     treeSourceNodeOne = None
     treeSourceNodeTwo = None
     oneId, twoId = cutEdge
 
+    # find the nodes from the tree nodes set
     for treeNode in treeNodes:
         if treeNode.id == oneId:
             treeSourceNodeOne = treeNode
@@ -162,6 +176,7 @@ def getNewClusters(treeNodes, cutEdge, mergedCluster):
 def findEdge(mergedCluster, graph, treeNodes, treeEdges, oldDifference):
     m = 0
 
+    # use case 32. Calculate the acceptability of each newly generated sub-graph (required)
     while (1):
         # randomly chose an edge to cut
         cutEdge = random.choice(treeEdges)
@@ -172,12 +187,15 @@ def findEdge(mergedCluster, graph, treeNodes, treeEdges, oldDifference):
         # calculate new score
         newDifference = abs(newClusterOne.pop - newClusterTwo.pop)
 
-        if isAcceptable(newClusterOne, graph)==True and isAcceptable(newClusterTwo, graph)==True and isAllAcceptable(graph)==False:
+        # use case 35. Repeat the steps above until you generate satisfy the termination condition (required)
+        if isAcceptable(newClusterOne, graph) == True and isAcceptable(newClusterTwo,
+                                                                       graph) == True and isAllAcceptable(
+            graph) == False:  # if acceptable
             print("Edge selected to be cut: " + str(cutEdge))
             print("\nnew variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
             print("new clusters[" + str(newClusterOne.id) + "] and [" + str(newClusterTwo.id) + "] generating...\n")
             return cutEdge
-        elif newDifference < oldDifference:
+        elif newDifference < oldDifference:  # if improved
             print("Edge selected to be cut: " + str(cutEdge))
             print("\nnew variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
             print("new clusters[" + str(newClusterOne.id) + "] and [" + str(newClusterTwo.id) + "] generating...\n")
@@ -208,44 +226,48 @@ def split(cutEdge, treeNodes, mergedCluster, graph):
 
 
 def merge(clusterOne, clusterTwo):
+    # create an imaginary cluster
     mergedCluster = Cluster()
 
+    #  update properties
     mergedCluster.nodes = clusterOne.nodes + clusterTwo.nodes
     mergedCluster.updatePop()
     mergedCluster.updateEdges()
 
+    #  collect surrounded cluster as neighbors
     for neighborCluster in clusterOne.neighbors:
-        if neighborCluster!=clusterTwo and neighborCluster not in mergedCluster.neighbors:
+        if neighborCluster != clusterTwo and neighborCluster not in mergedCluster.neighbors:
             mergedCluster.neighbors.append(neighborCluster)
 
     for neighborCluster in clusterTwo.neighbors:
-        if neighborCluster!=clusterOne and neighborCluster not in mergedCluster.neighbors:
+        if neighborCluster != clusterOne and neighborCluster not in mergedCluster.neighbors:
             mergedCluster.neighbors.append(neighborCluster)
 
+    # give an id
     mergedCluster.id = MERGEDCLUSTERID
 
     return mergedCluster
 
 
+# Algorithm phase 2
 def rebalance(graph, iterationLimit):
     n = 0
-    idealPop = graph.idealPop
 
-    while n < iterationLimit:
+    while n < iterationLimit:  # use case 36. Terminate a single districting calculation (required)
+        # use case 30. Generate a random districting satisfying constraints (required)
         clusterOne = random.choice(graph.clusters)
         clusterTwo = random.choice(clusterOne.neighbors)
+        oldVariation = abs(clusterOne.pop - clusterTwo.pop)  # old score
         print("Selected cluster[" + str(clusterOne.id) + "] and cluster[" + str(clusterTwo.id) + "]")
 
-        oldVariation = abs(clusterOne.pop - clusterTwo.pop)
-
-        # assume to merge the clusters
+        # assume to merge the clusters, which means, the merged cluster is "imaginary"
         mergedCluster = merge(clusterOne, clusterTwo)
 
-        a = 0
-
+        # use case 31. Generate a spanning tree of the combined sub-graph above (required)
         print("Generating Spinning Tree...")
         treeNodes, treeEdges = generateTree(mergedCluster)
 
+        # use case 33. Generate a feasible set of edges in the spanning tree to cut (required)
         print("Spinning Tree: " + str(treeEdges))
         print("Finding an feasible edge...")
         cutEdge = findEdge(mergedCluster, graph, treeNodes, treeEdges, oldVariation)
@@ -255,10 +277,11 @@ def rebalance(graph, iterationLimit):
         else:
             # merge the clusters in real
             combine(clusterOne, clusterTwo, graph)
+
+            # use case 34. Cut the edge in the combined sub-graph (required)
             split(cutEdge, treeNodes, clusterOne, graph)
+
             graph.printClusters()
             print("--------------------------------------------------------------------------")
+
             n += 1
-
-        a = 0
-

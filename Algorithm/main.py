@@ -9,6 +9,7 @@ from graph import Graph, Node
 path = 'GA_precincts_simplified_plus (1).json'
 
 if __name__ == '__main__':
+    # import data
     with open(path) as f:
         data = json.load(f)
 
@@ -27,6 +28,7 @@ if __name__ == '__main__':
 
     graph.idealPop = int(graph.pop/graph.numCluster)
 
+    # generate seed plan
     print("Generating seed plan...\n")
     generateSeed(graph)
 
@@ -35,8 +37,9 @@ if __name__ == '__main__':
     print("Population valid range: " + str(graph.lowerBound) + "-" + str(graph.upperBound))
     print('\n')
     print("Seed plan:")
-
     graph.printClusters()
+
+    # re-balance for 30 iterations
     print("\n\nRebalance...\n")
     print("--------------------------------------------------------------------------")
     rebalance(graph, 30)
