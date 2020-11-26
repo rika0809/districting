@@ -97,7 +97,7 @@ def isAcceptable(graph, cluster):
 # if all clusters on the graph acceptable?
 def isAllAcceptable(graph):
     for cluster in graph.clusters:
-        if not isAcceptable(cluster, graph):
+        if not isAcceptable(graph, cluster):
             return False
     return True
 
