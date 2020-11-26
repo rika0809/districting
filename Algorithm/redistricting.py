@@ -85,7 +85,7 @@ def getClusterNodes(treeNodes, sourceNodeOne, sourceNodeTwo):
 
 
 # if a single cluster is acceptable?
-def isAcceptable(cluster, graph):
+def isAcceptable(graph, cluster):
     upper = graph.upperBound
     lower = graph.lowerBound
     if upper >= cluster.pop >= lower:
@@ -116,7 +116,7 @@ def getNewCluster(id, nodes, mergedCluster):
     return newcluster
 
 
-def updateNeighbors(clusterOne, clusterTwo, mergedCluster, graph):
+def updateNeighbors(graph, mergedCluster, clusterOne, clusterTwo):
     for mergedClusterNode in mergedCluster.nodes:
         for neighborNode in mergedClusterNode.neighbors:
             if neighborNode not in clusterOne.nodes and neighborNode not in clusterTwo.nodes:  # it's an external node
@@ -173,7 +173,7 @@ def getNewClusters(treeNodes, cutEdge, mergedCluster):
     return newClusterOne, newClusterTwo
 
 
-def findEdge(mergedCluster, graph, treeNodes, treeEdges, oldDifference):
+def findEdge(graph, mergedCluster, treeNodes, treeEdges, oldDifference):
     m = 0
 
     # use case 32. Calculate the acceptability of each newly generated sub-graph (required)
@@ -188,8 +188,8 @@ def findEdge(mergedCluster, graph, treeNodes, treeEdges, oldDifference):
         newDifference = abs(newClusterOne.pop - newClusterTwo.pop)
 
         # use case 35. Repeat the steps above until you generate satisfy the termination condition (required)
-        if isAcceptable(newClusterOne, graph) == True and isAcceptable(newClusterTwo,
-                                                                       graph) == True and isAllAcceptable(
+        if isAcceptable(graph, newClusterOne) == True and isAcceptable(graph, newClusterTwo
+                                                                       ) == True and isAllAcceptable(
             graph) == False:  # if acceptable
             print("Edge selected to be cut: " + str(cutEdge))
             print("\nnew variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
@@ -207,12 +207,12 @@ def findEdge(mergedCluster, graph, treeNodes, treeEdges, oldDifference):
             continue
 
 
-def split(cutEdge, treeNodes, mergedCluster, graph):
+def split(graph, mergedCluster, cutEdge, treeNodes):
     # generate new clusters
     newClusterOne, newClusterTwo = getNewClusters(treeNodes, cutEdge, mergedCluster)
 
     # update new clusters' and surrounded cluster's neighbors
-    updateNeighbors(newClusterOne, newClusterTwo, mergedCluster, graph)
+    updateNeighbors(graph, mergedCluster, newClusterOne, newClusterTwo)
 
     # erase the merged cluster from the graph
     for cluster in graph.clusters:
@@ -270,7 +270,7 @@ def rebalance(graph, iterationLimit):
         # use case 33. Generate a feasible set of edges in the spanning tree to cut (required)
         print("Spinning Tree: " + str(treeEdges))
         print("Finding an feasible edge...")
-        cutEdge = findEdge(mergedCluster, graph, treeNodes, treeEdges, oldVariation)
+        cutEdge = findEdge(graph, mergedCluster, treeNodes, treeEdges, oldVariation)
 
         if cutEdge == None:
             print("Feasible edge couldn't be found after 50 iterations. Leave the original clusters as they were\n")
@@ -279,7 +279,7 @@ def rebalance(graph, iterationLimit):
             combine(clusterOne, clusterTwo, graph)
 
             # use case 34. Cut the edge in the combined sub-graph (required)
-            split(cutEdge, treeNodes, clusterOne, graph)
+            split(graph, clusterOne, cutEdge, treeNodes)
 
             graph.printClusters()
             print("--------------------------------------------------------------------------")
