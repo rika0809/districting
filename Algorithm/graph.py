@@ -28,7 +28,6 @@ class Cluster:
     def __init__(self, node=None):
         self.nodes = []
         self.edges = []
-        self.edgeCut = []
         self.neighbors = []
         if node!=None:
             self.id = node.id
@@ -51,7 +50,6 @@ class Cluster:
 
     def updateEdges(self):
         self.edges = []
-        self.edgeCut = []
         for node in self.nodes:
             uid = node.id
             for neighbor in node.neighbors:
@@ -59,12 +57,10 @@ class Cluster:
                 if neighbor in self.nodes:
                     if ((uid, vid) not in self.edges) and ((vid, uid) not in self.edges):
                         self.edges.append((uid, vid))
-                else:
-                    if ((uid, vid) not in self.edgeCut) and ((vid, uid) not in self.edgeCut):
-                        self.edgeCut.append((uid, vid))
+
 
 class Graph:
-    def __init__(self, numCluster, populationVariation, edgeCut):
+    def __init__(self, numCluster, populationVariation):
         self.nodes = []
         self.clusters = []
         self.edges = []
@@ -73,7 +69,6 @@ class Graph:
         self.populationVariation = populationVariation
         self.lowerBound = 0
         self.upperBound = 0
-        self.edgeCut = edgeCut
         self.idealPop = 0
 
     def findCluster(self, node):
@@ -118,7 +113,7 @@ class Graph:
             self.addEdge(uid, vid)
 
     def printClusters(self):
-        outString = [["ID", "Population", "PopulationVariation", "Edge-cut", "NeighborDistrict", "Precinct"]]
+        outString = [["ID", "Population", "PopulationVariation", "NeighborDistrict", "Precinct"]]
 
         for cluster in self.clusters:
             neighborsString ="["
@@ -136,13 +131,13 @@ class Graph:
                 else:
                     nodesString += str(node.id) + "]"
 
-            outString.append([str(cluster.id), str(cluster.pop), str(abs(cluster.pop - self.idealPop)), str(len(cluster.edgeCut)), neighborsString,
+            outString.append([str(cluster.id), str(cluster.pop), str(abs(cluster.pop - self.idealPop)), neighborsString,
                               nodesString])
 
-        print('{:<8} {:<8}  {:<8}  {:<8} {:<8}                              {:<8}'.format(*outString[0]))
+        print('{:<8} {:<8}  {:<8}  {:<8}                              {:<8}'.format(*outString[0]))
 
         for i in range(1, len(outString)):
-            print('{:<8} {:<8}     {:<8}              {:<8} {:<8}                              {:<8}'.format(*outString[i]))
+            print('{:<8} {:<8}     {:<8}           {:<8}                              {:<8}'.format(*outString[i]))
 
     def totPop(self):
         return self.pop
