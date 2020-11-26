@@ -159,8 +159,7 @@ def getNewClusters(treeNodes, cutEdge, mergedCluster):
     return newClusterOne, newClusterTwo
 
 
-def findEdge(mergedCluster, graph, treeNodes, treeEdges, oldTotalVariation):
-    idealPop = graph.idealPop
+def findEdge(mergedCluster, graph, treeNodes, treeEdges, oldDifference):
     m = 0
 
     while (1):
@@ -171,23 +170,21 @@ def findEdge(mergedCluster, graph, treeNodes, treeEdges, oldTotalVariation):
         newClusterOne, newClusterTwo = getNewClusters(treeNodes, cutEdge, mergedCluster)
 
         # calculate new score
-        newClusterOneVariation = abs(newClusterOne.pop - idealPop)
-        newClusterTwoVariation = abs(newClusterTwo.pop - idealPop)
-        newTotalVariation = newClusterOneVariation + newClusterTwoVariation
+        newDifference = abs(newClusterOne.pop - newClusterTwo.pop)
 
         if isAcceptable(newClusterOne, graph)==True and isAcceptable(newClusterTwo, graph)==True and isAllAcceptable(graph)==False:
             print("Edge selected to be cut: " + str(cutEdge))
-            print("\nnew variation: " + str(newTotalVariation) + ", old variation: " + str(oldTotalVariation))
+            print("\nnew variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
             print("new clusters[" + str(newClusterOne.id) + "] and [" + str(newClusterTwo.id) + "] generating...\n")
             return cutEdge
-        elif newTotalVariation < oldTotalVariation:
+        elif newDifference < oldDifference:
             print("Edge selected to be cut: " + str(cutEdge))
-            print("\nnew variation: " + str(newTotalVariation) + ", old variation: " + str(oldTotalVariation))
+            print("\nnew variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
             print("new clusters[" + str(newClusterOne.id) + "] and [" + str(newClusterTwo.id) + "] generating...\n")
             return cutEdge
         else:
             m += 1
-            if (m > 500):
+            if (m > 50):
                 return None
             continue
 
@@ -210,7 +207,7 @@ def split(cutEdge, treeNodes, mergedCluster, graph):
     graph.clusters.append(newClusterTwo)
 
 
-def merge(clusterOne, clusterTwo, graph):
+def merge(clusterOne, clusterTwo):
     mergedCluster = Cluster()
 
     mergedCluster.nodes = clusterOne.nodes + clusterTwo.nodes
@@ -239,22 +236,22 @@ def rebalance(graph, iterationLimit):
         clusterTwo = random.choice(clusterOne.neighbors)
         print("Selected cluster[" + str(clusterOne.id) + "] and cluster[" + str(clusterTwo.id) + "]")
 
-        clusterOneVariation = abs(clusterOne.pop - idealPop)
-        clusterTwoVariation = abs(clusterTwo.pop - idealPop)
-        totalVariation = clusterOneVariation + clusterTwoVariation
+        oldVariation = abs(clusterOne.pop - clusterTwo.pop)
 
         # assume to merge the clusters
-        mergedCluster = merge(clusterOne, clusterTwo, graph)
+        mergedCluster = merge(clusterOne, clusterTwo)
+
+        a = 0
 
         print("Generating Spinning Tree...")
         treeNodes, treeEdges = generateTree(mergedCluster)
 
         print("Spinning Tree: " + str(treeEdges))
         print("Finding an feasible edge...")
-        cutEdge = findEdge(mergedCluster, graph, treeNodes, treeEdges, totalVariation)
+        cutEdge = findEdge(mergedCluster, graph, treeNodes, treeEdges, oldVariation)
 
         if cutEdge == None:
-            print("Feasible edge couldn't be found after 500 iterations. Leave the original clusters as they were\n")
+            print("Feasible edge couldn't be found after 50 iterations. Leave the original clusters as they were\n")
         else:
             # merge the clusters in real
             combine(clusterOne, clusterTwo, graph)

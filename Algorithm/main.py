@@ -39,4 +39,4 @@ if __name__ == '__main__':
     graph.printClusters()
     print("\n\nRebalance...\n")
     print("--------------------------------------------------------------------------")
-    rebalance(graph, 2)
+    rebalance(graph, 30)
