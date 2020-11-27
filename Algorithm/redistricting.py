@@ -1,8 +1,10 @@
 import random
+import threading
 from graph import Cluster, TreeNode
 from seed import combine
 
 MERGEDCLUSTERID = 9999
+threadLock = threading.Lock()
 
 
 # BFS to generate a spinning tree
@@ -173,36 +175,70 @@ def getNewClusters(treeNodes, cutEdge, mergedCluster):
     return newClusterOne, newClusterTwo
 
 
+def getFeasibleEdges(graph, newScores, edges, treeNodes, cutEdge, mergedCluster, oldDifference):
+    # generate new clusters
+    newClusterOne, newClusterTwo = getNewClusters(treeNodes, cutEdge, mergedCluster)
+
+    # calculate new score
+    newDifference = abs(newClusterOne.pop - newClusterTwo.pop)
+
+    # use case 35. Repeat the steps above until you generate satisfy the termination condition (required)
+    if isAcceptable(graph, newClusterOne) == True and isAcceptable(graph, newClusterTwo
+                                                                   ) == True and isAllAcceptable(
+        graph) == False:  # if acceptable
+        threadLock.acquire()
+        newScores.append(newDifference)
+        edges.append(cutEdge)
+        threadLock.release()
+
+    if newDifference < oldDifference: # if improved
+        threadLock.acquire()
+        newScores.append(newDifference)
+        edges.append(cutEdge)
+        threadLock.release()
+
+
+def collectfeasibleEdges(graph, treeNodes, treeEdges, mergedCluster, oldDifference):
+    edges = []
+    newScores = []
+    threads = []
+
+    for i in range(10):  # 10 threads
+        # randomly chose an edge to cut
+        cutEdge = random.choice(treeEdges)
+        t = threading.Thread(target=getFeasibleEdges,
+                             args=(graph, newScores, edges, treeNodes, cutEdge, mergedCluster, oldDifference,))
+        t.start()
+        threads.append(t)
+
+    for t in threads:
+        t.join()
+
+    a = 0
+    return edges, newScores
+
+
 def findEdge(graph, mergedCluster, treeNodes, treeEdges, oldDifference):
     m = 0
 
     # use case 32. Calculate the acceptability of each newly generated sub-graph (required)
     while (1):
-        # randomly chose an edge to cut
-        cutEdge = random.choice(treeEdges)
+        # use case 33. Generate a feasible set of edges in the spanning tree to cut (required)
+        feasibleEdges, newScores = collectfeasibleEdges(graph, treeNodes, treeEdges, mergedCluster, oldDifference)
 
-        # generate new clusters
-        newClusterOne, newClusterTwo = getNewClusters(treeNodes, cutEdge, mergedCluster)
+        if len(feasibleEdges) > 0:
+            cutEdge = random.choice(feasibleEdges)
+            index = feasibleEdges.index(cutEdge)
+            newDifference = newScores[index]
 
-        # calculate new score
-        newDifference = abs(newClusterOne.pop - newClusterTwo.pop)
-
-        # use case 35. Repeat the steps above until you generate satisfy the termination condition (required)
-        if isAcceptable(graph, newClusterOne) == True and isAcceptable(graph, newClusterTwo
-                                                                       ) == True and isAllAcceptable(
-            graph) == False:  # if acceptable
             print("Edge selected to be cut: " + str(cutEdge))
             print("\nnew variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
-            print("new clusters[" + str(newClusterOne.id) + "] and [" + str(newClusterTwo.id) + "] generating...\n")
-            return cutEdge
-        elif newDifference < oldDifference:  # if improved
-            print("Edge selected to be cut: " + str(cutEdge))
-            print("\nnew variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
-            print("new clusters[" + str(newClusterOne.id) + "] and [" + str(newClusterTwo.id) + "] generating...\n")
-            return cutEdge
+
+            return random.choice(feasibleEdges)
+
         else:
             m += 1
-            if (m > 50):
+            if (m > 5):
                 return None
             continue
 
@@ -210,6 +246,7 @@ def findEdge(graph, mergedCluster, treeNodes, treeEdges, oldDifference):
 def split(graph, mergedCluster, cutEdge, treeNodes):
     # generate new clusters
     newClusterOne, newClusterTwo = getNewClusters(treeNodes, cutEdge, mergedCluster)
+    print("new clusters[" + str(newClusterOne.id) + "] and [" + str(newClusterTwo.id) + "] generating...\n")
 
     # update new clusters' and surrounded cluster's neighbors
     updateNeighbors(graph, mergedCluster, newClusterOne, newClusterTwo)
@@ -267,13 +304,13 @@ def rebalance(graph, iterationLimit):
         print("Generating Spinning Tree...")
         treeNodes, treeEdges = generateTree(mergedCluster)
 
-        # use case 33. Generate a feasible set of edges in the spanning tree to cut (required)
+
         print("Spinning Tree: " + str(treeEdges))
         print("Finding an feasible edge...")
         cutEdge = findEdge(graph, mergedCluster, treeNodes, treeEdges, oldVariation)
 
         if cutEdge == None:
-            print("Feasible edge couldn't be found after 50 iterations. Leave the original clusters as they were\n")
+            print("Feasible edge couldn't be found. Leave the original clusters as they were\n")
         else:
             # merge the clusters in real
             combine(clusterOne, clusterTwo, graph)
