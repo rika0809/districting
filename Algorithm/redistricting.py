@@ -203,7 +203,7 @@ def collectfeasibleEdges(graph, treeNodes, treeEdges, mergedCluster, oldDifferen
     newScores = []
     threads = []
 
-    for i in range(10):  # 10 threads
+    for i in range(10):  # DIY numbers of threads
         # randomly chose an edge to cut
         cutEdge = random.choice(treeEdges)
         t = threading.Thread(target=getFeasibleEdges,
