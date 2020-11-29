@@ -52,6 +52,7 @@ class Cluster:
 class Graph:
     def __init__(self, numCluster, populationVariation):
         self.nodes = []
+        self.nodesDic = {}
         self.clusters = []
         self.edges = []
         self.pop = 0
@@ -75,6 +76,7 @@ class Graph:
 
     def addNode(self, node):
         self.nodes.append(node)
+        self.nodesDic[node.id] = node
         self.clusters.append(Cluster(node))
         self.pop += node.pop
         self.updateBounds()
