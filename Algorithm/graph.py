@@ -1,8 +1,13 @@
 class Node:
-    def __init__(self, id, pop):
+    def __init__(self, id, pop=None, shape=None):
         self.id = id
         self.neighbors = []
-        self.pop = pop
+
+        if pop != None:
+            self.pop = pop
+
+        if shape != None:
+            self.shape = shape
 
     def addNeighbor(self, neighborNode):
         if neighborNode not in self.neighbors:
@@ -14,8 +19,7 @@ class Cluster:
         self.nodes = []
         self.edges = []
         self.neighbors = []
-
-        if node is not None:
+        if node!=None:
             self.id = node.id
             self.pop = node.pop
             self.nodes.append(node)
@@ -48,7 +52,6 @@ class Cluster:
 class Graph:
     def __init__(self, numCluster, populationVariation):
         self.nodes = []
-        self.nodes_dict = {}
         self.clusters = []
         self.edges = []
         self.pop = 0
@@ -64,16 +67,21 @@ class Graph:
                 return cluster
         return None
 
+    def findNode(self, n_id):
+        for node in self.nodes:
+            if node.id == n_id:
+                return node
+        return None
+
     def addNode(self, node):
         self.nodes.append(node)
-        self.nodes_dict[node.id] = node
         self.clusters.append(Cluster(node))
         self.pop += node.pop
         self.updateBounds()
 
     def addEdge(self, uid, vid):
-        u = self.nodes_dict[uid]
-        v = self.nodes_dict[vid]
+        u = self.findNode(uid)
+        v = self.findNode(vid)
         if u not in v.neighbors and v not in u.neighbors:
             u.addNeighbor(v)
             v.addNeighbor(u)
@@ -98,17 +106,17 @@ class Graph:
         outString = [["ID", "Population", "PopulationVariation", "NeighborDistrict", "Precinct"]]
 
         for cluster in self.clusters:
-            neighborsString = "["
-            nodesString = "["
+            neighborsString ="["
+            nodesString ="["
 
             for neighbor in cluster.neighbors:
-                if neighbor != cluster.neighbors[-1]:
+                if neighbor!=cluster.neighbors[-1]:
                     neighborsString += str(neighbor.id) + ","
                 else:
                     neighborsString += str(neighbor.id) + "]"
 
             for node in cluster.nodes:
-                if node != cluster.nodes[-1]:
+                if node!=cluster.nodes[-1]:
                     nodesString += str(node.id) + ","
                 else:
                     nodesString += str(node.id) + "]"
@@ -128,6 +136,7 @@ class Graph:
         self.clusters.remove(cluster)
 
     def updateBounds(self):
-        ideal = self.pop / self.numCluster
+        ideal = self.pop/self.numCluster
         self.lowerBound = int(ideal - ideal * self.populationVariation)
         self.upperBound = int(ideal + ideal * self.populationVariation)
+

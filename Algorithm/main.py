@@ -1,6 +1,4 @@
 import json
-import networkx as nx
-import matplotlib.pyplot as plt
 
 from redistricting import rebalance
 from seed import generateSeed
@@ -27,7 +25,7 @@ if __name__ == '__main__':
             graph.addEdge(id, neighborId)
 
     graph.idealPop = int(graph.pop/graph.numCluster)
-    a = 0
+
     # generate seed plan
     print("Generating seed plan...\n")
     generateSeed(graph)
@@ -43,3 +41,4 @@ if __name__ == '__main__':
     print("\n\nRebalance...\n")
     print("--------------------------------------------------------------------------")
     rebalance(graph, 30)
+

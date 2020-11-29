@@ -1,4 +1,3 @@
-
 import random
 
 
@@ -35,3 +34,4 @@ def generateSeed(graph):
         cluster = random.choice(clusters)  # randomly select a cluster
         target = random.choice(cluster.neighbors)  # randomly select one of its neighbors
         combine(cluster, target, graph)  # combine them
+
