@@ -36,14 +36,17 @@ def isAllAcceptable(graph):
 
 
 # create new cluster
-def getNewCluster(graph ,id, nodes, mergedCluster):
+def getNewCluster(graph, id, nodes, edges):
+    a = 0
     newcluster = Cluster()
 
     newcluster.id = id
     for node in nodes:
         newcluster.nodes.append(graph.nodesDic[node])
-    newcluster.updateEdges()
+    a = 0
+    newcluster.edges = edges
     newcluster.updatePop()
+    a =0
 
     return newcluster
 
@@ -73,7 +76,7 @@ def updateNeighbors(graph, mergedCluster, clusterOne, clusterTwo):
     clusterTwo.neighbors.append(clusterOne)
 
 
-def getNewClusters(graph, ST, cutEdge, mergedCluster):
+def getNewClusters(graph, ST, cutEdge):
     a = 0
     oneID, twoID = cutEdge
     # find nodes on the edge to be cut
@@ -81,8 +84,8 @@ def getNewClusters(graph, ST, cutEdge, mergedCluster):
     nodesTwo = list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[1].nodes
     a = 0
     # create new clusters
-    newClusterOne = getNewCluster(graph, oneID, nodesOne, mergedCluster)
-    newClusterTwo = getNewCluster(graph, twoID, nodesTwo, mergedCluster)
+    newClusterOne = getNewCluster(graph, oneID, nodesOne, list(list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[0].nodes))
+    newClusterTwo = getNewCluster(graph, twoID, nodesTwo, list(list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[0].nodes))
     a = 0
     return newClusterOne, newClusterTwo
 
@@ -100,7 +103,7 @@ def findEdge(graph, mergedCluster, ST, oldDifference):
 
         a = 0
         # generate new clusters
-        newClusterOne, newClusterTwo = getNewClusters(graph ,ST, cutEdge, mergedCluster)
+        newClusterOne, newClusterTwo = getNewClusters(graph ,ST, cutEdge)
         a = 0
 
         # calculate new score
@@ -130,7 +133,7 @@ def split(graph, mergedCluster, cutEdge, ST):
     ST.remove_edge(oneID, twoID)
 
     # generate new clusters
-    newClusterOne, newClusterTwo = getNewClusters(graph ,ST, cutEdge, mergedCluster)
+    newClusterOne, newClusterTwo = getNewClusters(graph, ST, cutEdge)
 
     # update new clusters' and surrounded cluster's neighbors
     updateNeighbors(graph, mergedCluster, newClusterOne, newClusterTwo)
