@@ -1,87 +1,17 @@
 import random
-from graph import Cluster, TreeNode
+from graph import Cluster
 from seed import combine
+import networkx as nx
 
 MERGEDCLUSTERID = 9999
 
 
 # BFS to generate a spinning tree
 def generateTree(cluster):
-    treeNodes = []
-    treeEdges = []
-
-    s = random.choice(range(len(cluster.nodes)))  # randomly select a node as start point
-
-    for node in cluster.nodes:  # collect tree nodes
-        treeNodes.append(TreeNode(node.id))
-
-    visited = [False] * len(cluster.nodes)
-    queue = []
-    queue.append(cluster.nodes[s])
-    visited[s] = True
-
-    while len(queue) > 0:
-        sourceNode = queue.pop(0)
-        uid = sourceNode.id
-
-        for neighbor in sourceNode.neighbors:
-            if neighbor in cluster.nodes:
-                s = cluster.nodes.index(neighbor)
-                if not visited[s]:
-
-                    # add treeEdge
-                    vid = neighbor.id
-                    treeEdges.append((uid, vid))
-                    for treeNode in treeNodes:
-                        if treeNode.id == uid:
-                            treeNode.addNeighbor(vid)
-                        if treeNode.id == vid:
-                            treeNode.addNeighbor(uid)
-
-                    visited[s] = True
-                    queue.append(cluster.nodes[s])
-            else:
-                continue
-
-    return treeNodes, treeEdges
-
-
-# BFS to traverse a cluster and get node
-def getClusterNodes(treeNodes, sourceNodeOne, sourceNodeTwo):
-    nodesOne = []
-    s = 0
-
-    for i in range(len(treeNodes)):
-        if treeNodes[i].id == sourceNodeOne.id:
-            s = i
-            break;
-
-    visited = [False] * len(treeNodes)
-    queue = []
-    queue.append(sourceNodeOne)
-    visited[s] = True
-
-    while len(queue) > 0:
-        sourceNode = queue.pop(0)
-        nodesOne.append(sourceNode.id)
-        for neighborId in sourceNode.neighbors:
-            if neighborId != sourceNodeTwo.id:  # don't enter the node on the other cluster
-
-                # get the neighborNode
-                neighborNode = None
-                for i in range(len(treeNodes)):
-                    if treeNodes[i].id == neighborId:
-                        neighborNode = treeNodes[i]
-                        s = i
-                        break
-
-                if not visited[s]:
-                    visited[s] = True
-                    queue.append(neighborNode)
-            else:
-                continue
-
-    return nodesOne
+    G = nx.Graph()
+    G.add_edges_from(cluster.edges)
+    spanningTree = nx.tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
+    return spanningTree
 
 
 # if a single cluster is acceptable?
@@ -159,31 +89,36 @@ def findNodesOnCutEdge(treeNodes, cutEdge):
     return treeSourceNodeOne, treeSourceNodeTwo
 
 
-def getNewClusters(treeNodes, cutEdge, mergedCluster):
-    a = 0
-    # find nodes on the edge to be cut
-    treeSourceNodeOne, treeSourceNodeTwo = findNodesOnCutEdge(treeNodes, cutEdge)
-    a = 0
-    nodesOne = getClusterNodes(treeNodes, treeSourceNodeOne, treeSourceNodeTwo)
-    nodesTwo = getClusterNodes(treeNodes, treeSourceNodeTwo, treeSourceNodeOne)
-    a = 0
+def getNewClusters(treeGraph, cutEdge, mergedCluster):
+    oneID, twoID = cutEdge
+
+    # get new clusters' nodes
+    nodesOne = list(treeGraph.subgraph(c) for c in nx.connected_components(treeGraph))[0].nodes
+    nodesTwo = list(treeGraph.subgraph(c) for c in nx.connected_components(treeGraph))[1].nodes
+
     # create new clusters
-    newClusterOne = getNewCluster(treeSourceNodeOne.id, nodesOne, mergedCluster)
-    newClusterTwo = getNewCluster(treeSourceNodeTwo.id, nodesTwo, mergedCluster)
-    a = 0
+    newClusterOne = getNewCluster(oneID, nodesOne, mergedCluster)
+    newClusterTwo = getNewCluster(oneID, nodesTwo, mergedCluster)
+
     return newClusterOne, newClusterTwo
 
 
-def findEdge(graph, mergedCluster, treeNodes, treeEdges, oldDifference):
+def findEdge(graph, mergedCluster, treeEdges, oldDifference):
+    treeGraph = nx.Graph()
+    treeGraph.add_edges_from(treeEdges)
+    a = 0
+
     # use case 32. Calculate the acceptability of each newly generated sub-graph (required)
     while (1):
         # randomly chose an edge to cut
+        a = treeEdges
         cutEdge = random.choice(treeEdges)
         treeEdges.remove(cutEdge)
+        oneID, twoID = cutEdge
+        treeGraph.remove_edge(oneID, twoID)
 
-        a = 0
         # generate new clusters
-        newClusterOne, newClusterTwo = getNewClusters(treeNodes, cutEdge, mergedCluster)
+        newClusterOne, newClusterTwo = getNewClusters(treeGraph, cutEdge, mergedCluster)
         a = 0
 
         # calculate new score
@@ -203,12 +138,14 @@ def findEdge(graph, mergedCluster, treeNodes, treeEdges, oldDifference):
             return cutEdge
         if len(treeEdges)==0:
             return None
+        treeGraph.add_edge(oneID, twoID)
 
 
-
-def split(graph, mergedCluster, cutEdge, treeNodes):
+def split(graph, mergedCluster, cutEdge, treeEdges):
+    treeGraph = nx.Graph()
+    treeGraph.add_edges_from(treeEdges)
     # generate new clusters
-    newClusterOne, newClusterTwo = getNewClusters(treeNodes, cutEdge, mergedCluster)
+    newClusterOne, newClusterTwo = getNewClusters(treeGraph, cutEdge, mergedCluster)
 
     # update new clusters' and surrounded cluster's neighbors
     updateNeighbors(graph, mergedCluster, newClusterOne, newClusterTwo)
@@ -264,12 +201,13 @@ def rebalance(graph, iterationLimit):
 
         # use case 31. Generate a spanning tree of the combined sub-graph above (required)
         print("Generating Spinning Tree...")
-        treeNodes, treeEdges = generateTree(mergedCluster)
-
+        tree = generateTree(mergedCluster)
+        treeEdges = list(tree)
+        a = 0
         # use case 33. Generate a feasible set of edges in the spanning tree to cut (required)
-        print("Spinning Tree: " + str(treeEdges))
+        print("Spinning Tree: " + str(list(treeEdges)))
         print("Finding an feasible edge...")
-        cutEdge = findEdge(graph, mergedCluster, treeNodes, treeEdges, oldVariation)
+        cutEdge = findEdge(graph, mergedCluster, treeEdges, oldVariation)
 
         if cutEdge == None:
             print("Feasible edge couldn't be found. Leave the original clusters as they were\n")
@@ -278,7 +216,7 @@ def rebalance(graph, iterationLimit):
             combine(clusterOne, clusterTwo, graph)
 
             # use case 34. Cut the edge in the combined sub-graph (required)
-            split(graph, clusterOne, cutEdge, treeNodes)
+            split(graph, clusterOne, cutEdge, treeEdges)
 
             graph.printClusters()
             print("--------------------------------------------------------------------------")

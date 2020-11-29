@@ -27,7 +27,7 @@ if __name__ == '__main__':
             graph.addEdge(id, neighborId)
 
     graph.idealPop = int(graph.pop/graph.numCluster)
-
+    a = 0
     # generate seed plan
     print("Generating seed plan...\n")
     generateSeed(graph)
