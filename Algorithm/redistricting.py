@@ -73,24 +73,6 @@ def updateNeighbors(graph, mergedCluster, clusterOne, clusterTwo):
     clusterTwo.neighbors.append(clusterOne)
 
 
-# for example, parameter: edge(1,2), return node(1), node(2)
-def findNodesOnCutEdge(treeNodes, cutEdge):
-    treeSourceNodeOne = None
-    treeSourceNodeTwo = None
-    oneId, twoId = cutEdge
-
-    # find the nodes from the tree nodes set
-    for treeNode in treeNodes:
-        if treeNode.id == oneId:
-            treeSourceNodeOne = treeNode
-        if treeNode.id == twoId:
-            treeSourceNodeTwo = treeNode
-        if treeSourceNodeOne is not None and treeSourceNodeTwo is not None:
-            break;
-
-    return treeSourceNodeOne, treeSourceNodeTwo
-
-
 def getNewClusters(graph, ST, cutEdge, mergedCluster):
     a = 0
     oneID, twoID = cutEdge
