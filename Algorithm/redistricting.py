@@ -97,16 +97,15 @@ def findEdge(graph, mergedCluster, ST, oldDifference):
         oneID, twoID = cutEdge
         ST.remove_edge(oneID, twoID)
 
-        # calculate new score
         nodesOne = list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[0].nodes
         nodesTwo = list(set(ST.nodes) - set(nodesOne))
 
+        # calculate new population score
         popOne = 0
         for node in nodesOne:
             popOne += graph.nodesDic[node].pop
         popTwo = totPop - popOne
         newDifference = abs(popOne - popTwo)
-
 
         ST.add_edge(oneID, twoID)
         # use case 35. Repeat the steps above until you generate satisfy the termination condition (required)
