@@ -35,11 +35,23 @@ def getNewCluster(graph, id, nodes, edges):
     newcluster.id = id
     for node in nodes:
         newcluster.nodes.append(graph.nodesDic[node])
+        newcluster.pop += graph.nodesDic[node].pop
     a = 0
     newcluster.edges = edges
-    newcluster.updatePop()
     a =0
 
+    return newcluster
+
+
+def getNewClusterFromTree(graph, id, nodes):
+    a = 0
+    newcluster = Cluster()
+
+    newcluster.id = id
+    for node in nodes:
+        newcluster.nodes.append(graph.nodesDic[node])
+        newcluster.pop += graph.nodesDic[node].pop
+    a = 0
     return newcluster
 
 
@@ -73,7 +85,7 @@ def getNewClusters(graph, ST, cutEdge):
     oneID, twoID = cutEdge
     # find nodes on the edge to be cut
     nodesOne = list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[0].nodes
-    nodesTwo = list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[1].nodes
+    nodesTwo = list(set(ST.nodes) - set(nodesOne))
     a = 0
     # create new clusters
     newClusterOne = getNewCluster(graph, oneID, nodesOne, list(list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[0].nodes))
@@ -82,9 +94,27 @@ def getNewClusters(graph, ST, cutEdge):
     return newClusterOne, newClusterTwo
 
 
+def getNewClustersFromTree(graph, ST, cutEdge):
+    a = 0
+    oneID, twoID = cutEdge
+    # find nodes on the edge to be cut
+    nodesOne = list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[0].nodes
+    nodesTwo = list(set(ST.nodes) - set(nodesOne))
+    a = 0
+    # create new clusters
+    newClusterOne = getNewClusterFromTree(graph, oneID, nodesOne)
+    newClusterTwo = getNewClusterFromTree(graph, twoID, nodesTwo)
+    a = 0
+    return newClusterOne, newClusterTwo
+
+
 def findEdge(graph, mergedCluster, ST, oldDifference):
     # use case 32. Calculate the acceptability of each newly generated sub-graph (required)
     treeEdges = list(ST.edges)
+    totPop = mergedCluster.pop
+    upper = graph.upperBound
+    lower = graph.lowerBound
+
     while (1):
         a = 0
         # randomly chose an edge to cut
@@ -93,26 +123,26 @@ def findEdge(graph, mergedCluster, ST, oldDifference):
         oneID, twoID = cutEdge
         ST.remove_edge(oneID, twoID)
 
-        a = 0
-        # generate new clusters
-        newClusterOne, newClusterTwo = getNewClusters(graph ,ST, cutEdge)
-        a = 0
-
         # calculate new score
-        newDifference = abs(newClusterOne.pop - newClusterTwo.pop)
-        a = 0
+        nodesOne = list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[0].nodes
+        nodesTwo = list(set(ST.nodes) - set(nodesOne))
+
+        popOne = 0
+        for node in nodesOne:
+            popOne += graph.nodesDic[node].pop
+        popTwo = totPop - popOne
+        newDifference = abs(popOne - popTwo)
+
+
         ST.add_edge(oneID, twoID)
         # use case 35. Repeat the steps above until you generate satisfy the termination condition (required)
-        if isAcceptable(graph, newClusterOne) == True and isAcceptable(graph, newClusterTwo
-                                                                       ) == True:  # if acceptable
+        if upper >= popOne >= lower and upper >= popTwo >= lower:  # if acceptable
             print("Edge selected to be cut: " + str(cutEdge))
             print("\nnew variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
-            print("new clusters[" + str(newClusterOne.id) + "] and [" + str(newClusterTwo.id) + "] generating...\n")
             return cutEdge
         if newDifference < oldDifference:  # if improved
             print("Edge selected to be cut: " + str(cutEdge))
             print("\nnew variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
-            print("new clusters[" + str(newClusterOne.id) + "] and [" + str(newClusterTwo.id) + "] generating...\n")
             return cutEdge
         if len(treeEdges)==0:
             return None
@@ -123,6 +153,7 @@ def split(graph, mergedCluster, cutEdge, ST):
     # cut the edge
     oneID, twoID = cutEdge
     ST.remove_edge(oneID, twoID)
+    print("new clusters[" + str(oneID) + "] and [" + str(twoID) + "] generating...\n")
 
     # generate new clusters
     newClusterOne, newClusterTwo = getNewClusters(graph, ST, cutEdge)
@@ -139,6 +170,7 @@ def split(graph, mergedCluster, cutEdge, ST):
     # add new clusters on graph
     graph.clusters.append(newClusterOne)
     graph.clusters.append(newClusterTwo)
+
 
 
 def merge(clusterOne, clusterTwo):

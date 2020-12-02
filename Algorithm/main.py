@@ -1,5 +1,4 @@
 import json
-
 from redistricting import rebalance
 from seed import generateSeed
 from graph import Graph, Node
@@ -40,5 +39,5 @@ if __name__ == '__main__':
     # re-balance for 30 iterations
     print("\n\nRebalance...\n")
     print("--------------------------------------------------------------------------")
-    rebalance(graph, 10)
+    rebalance(graph, 30)
 
