@@ -43,18 +43,6 @@ def getNewCluster(graph, id, nodes, edges):
     return newcluster
 
 
-def getNewClusterFromTree(graph, id, nodes):
-    a = 0
-    newcluster = Cluster()
-
-    newcluster.id = id
-    for node in nodes:
-        newcluster.nodes.append(graph.nodesDic[node])
-        newcluster.pop += graph.nodesDic[node].pop
-    a = 0
-    return newcluster
-
-
 def updateNeighbors(graph, mergedCluster, clusterOne, clusterTwo):
     for mergedClusterNode in mergedCluster.nodes:
         for neighborNode in mergedClusterNode.neighbors:
@@ -90,20 +78,6 @@ def getNewClusters(graph, ST, cutEdge):
     # create new clusters
     newClusterOne = getNewCluster(graph, oneID, nodesOne, list(list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[0].nodes))
     newClusterTwo = getNewCluster(graph, twoID, nodesTwo, list(list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[0].nodes))
-    a = 0
-    return newClusterOne, newClusterTwo
-
-
-def getNewClustersFromTree(graph, ST, cutEdge):
-    a = 0
-    oneID, twoID = cutEdge
-    # find nodes on the edge to be cut
-    nodesOne = list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[0].nodes
-    nodesTwo = list(set(ST.nodes) - set(nodesOne))
-    a = 0
-    # create new clusters
-    newClusterOne = getNewClusterFromTree(graph, oneID, nodesOne)
-    newClusterTwo = getNewClusterFromTree(graph, twoID, nodesTwo)
     a = 0
     return newClusterOne, newClusterTwo
 
