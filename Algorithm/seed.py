@@ -4,7 +4,7 @@ import random
 def combine(cluster, target, graph):
     #  update properties. Add all the properties of the target on the cluster.
     cluster.nodes = cluster.nodes + target.nodes
-    cluster.updatePop()
+    cluster.pop = cluster.pop + target.pop
     cluster.updateEdges()
 
     # update cluster's neighbors and surrounded clusters's neighbors

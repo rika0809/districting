@@ -97,7 +97,8 @@ def findEdge(graph, mergedCluster, ST, oldDifference):
         oneID, twoID = cutEdge
         ST.remove_edge(oneID, twoID)
 
-        nodesOne = list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[0].nodes
+        #nodesOne = list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[0].nodes
+        nodesOne = max(nx.connected_components(ST), key=len)
         nodesTwo = list(set(ST.nodes) - set(nodesOne))
 
         # calculate new population score
@@ -145,14 +146,13 @@ def split(graph, mergedCluster, cutEdge, ST):
     graph.clusters.append(newClusterTwo)
 
 
-
 def merge(clusterOne, clusterTwo):
     # create an imaginary cluster
     mergedCluster = Cluster()
 
     #  update properties
     mergedCluster.nodes = clusterOne.nodes + clusterTwo.nodes
-    mergedCluster.updatePop()
+    mergedCluster.pop = clusterOne.pop + clusterTwo.pop
     mergedCluster.updateEdges()
 
     #  collect surrounded cluster as neighbors
