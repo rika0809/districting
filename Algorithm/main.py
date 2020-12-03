@@ -1,5 +1,6 @@
 import json
 from redistricting import rebalance
+from redistricting import printDistricts
 from seed import generateSeed
 from graph import Graph, Node
 
@@ -34,10 +35,10 @@ if __name__ == '__main__':
     print("Population valid range: " + str(graph.lowerBound) + "-" + str(graph.upperBound))
     print('\n')
     print("Seed plan:")
-    graph.printClusters()
+    printDistricts(graph)
 
     # re-balance for 30 iterations
     print("\n\nRebalance...\n")
     print("--------------------------------------------------------------------------")
-    rebalance(graph, 10)
+    rebalance(graph, 500)
 

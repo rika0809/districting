@@ -104,33 +104,6 @@ class Graph:
         for uid, vid in edgeForms:
             self.addEdge(uid, vid)
 
-    def printClusters(self):
-        outString = [["ID", "Population", "PopulationVariation", "NeighborDistrict", "Precinct"]]
-
-        for cluster in self.clusters:
-            neighborsString ="["
-            nodesString ="["
-
-            for neighbor in cluster.neighbors:
-                if neighbor!=cluster.neighbors[-1]:
-                    neighborsString += str(neighbor.id) + ","
-                else:
-                    neighborsString += str(neighbor.id) + "]"
-
-            for node in cluster.nodes:
-                if node!=cluster.nodes[-1]:
-                    nodesString += str(node.id) + ","
-                else:
-                    nodesString += str(node.id) + "]"
-
-            outString.append([str(cluster.id), str(cluster.pop), str(abs(cluster.pop - self.idealPop)), neighborsString,
-                              nodesString])
-
-        print('{:<8} {:<8}  {:<8}  {:<8}                              {:<8}'.format(*outString[0]))
-
-        for i in range(1, len(outString)):
-            print('{:<8} {:<8}     {:<8}           {:<8}                              {:<8}'.format(*outString[i]))
-
     def totPop(self):
         return self.pop
 

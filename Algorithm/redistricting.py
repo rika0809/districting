@@ -16,6 +16,7 @@ def generateTree(cluster):
 
     return ST
 
+
 # if a single cluster is acceptable?
 def isAcceptable(graph, cluster):
     upper = graph.upperBound
@@ -28,16 +29,13 @@ def isAcceptable(graph, cluster):
 
 # create new cluster
 def getNewCluster(graph, id, nodes, edges):
-    a = 0
     newcluster = Cluster()
 
     newcluster.id = id
     for node in nodes:
         newcluster.nodes.append(graph.nodesDic[node])
         newcluster.pop += graph.nodesDic[node].pop
-    a = 0
     newcluster.edges = edges
-    a =0
 
     return newcluster
 
@@ -68,21 +66,21 @@ def updateNeighbors(graph, mergedCluster, clusterOne, clusterTwo):
 
 
 def getNewClusters(graph, ST, cutEdge):
-    a = 0
     oneID, twoID = cutEdge
+
     # find nodes on the edge to be cut
     nodesOne = list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[0].nodes
     nodesTwo = list(set(ST.nodes) - set(nodesOne))
-    a = 0
+
     # create new clusters
     newClusterOne = getNewCluster(graph, oneID, nodesOne, list(list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[0].nodes))
     newClusterTwo = getNewCluster(graph, twoID, nodesTwo, list(list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[0].nodes))
-    a = 0
+
     return newClusterOne, newClusterTwo
 
 
 def getCompactness(border, totalNodes):
-    return 1 - (border/totalNodes)
+    return totalNodes/border
 
 
 def getPopAndComp(graph, nodes):
@@ -96,57 +94,50 @@ def getPopAndComp(graph, nodes):
         for neighborNode in node.neighbors:
             if neighborNode.id not in nodes:
                 border += 1
+                break
 
     compact = getCompactness(border, totalNodes)
 
     return pop, compact
 
 
-def findEdge(graph, mergedCluster, ST, oldDifference):
+def findEdge(graph, ST, oldDifference, oldCompact):
     # use case 32. Calculate the acceptability of each newly generated sub-graph (required)
     treeEdges = list(ST.edges)
-    totPop = mergedCluster.pop
     upper = graph.upperBound
     lower = graph.lowerBound
-    totalNode = len(mergedCluster.nodes)
+    notFind = True
 
-    while (1):
+    while (notFind):
         # randomly chose an edge to cut
         cutEdge = random.choice(treeEdges)
         treeEdges.remove(cutEdge)
         oneID, twoID = cutEdge
         ST.remove_edge(oneID, twoID)
 
-        #nodesOne = list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[0].nodes
         nodesOne = max(nx.connected_components(ST), key=len)
         nodesTwo = list(set(ST.nodes) - set(nodesOne))
 
         # calculate new population score
         popOne, compactOne = getPopAndComp(graph, nodesOne)
-        popTwo, compactTwo = getPopAndComp(graph, nodesOne)
+        popTwo, compactTwo = getPopAndComp(graph, nodesTwo)
         newDifference = abs(popOne - popTwo)
         newCompact = compactOne + compactTwo
 
         ST.add_edge(oneID, twoID)
         # use case 35. Repeat the steps above until you generate satisfy the termination condition (required)
         if upper >= popOne >= lower and upper >= popTwo >= lower:  # if acceptable
-            print("Edge selected to be cut: " + str(cutEdge))
-            print("\nnew variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
             return cutEdge
-        if newDifference < oldDifference:  # if improved
-            print("Edge selected to be cut: " + str(cutEdge))
-            print("\nnew variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
+        if newDifference < oldDifference and newCompact > oldCompact:  # if improved
             return cutEdge
         if len(treeEdges)==0:
             return None
-        a = 0
 
 
 def split(graph, mergedCluster, cutEdge, ST):
     # cut the edge
     oneID, twoID = cutEdge
     ST.remove_edge(oneID, twoID)
-    print("new clusters[" + str(oneID) + "] and [" + str(twoID) + "] generating...\n")
 
     # generate new clusters
     newClusterOne, newClusterTwo = getNewClusters(graph, ST, cutEdge)
@@ -189,6 +180,48 @@ def merge(clusterOne, clusterTwo):
     return mergedCluster
 
 
+def getCompact(cluster):
+    border = 0
+
+    for node in cluster.nodes:
+        for neighborNode in node.neighbors:
+            if neighborNode not in cluster.nodes:
+                border += 1
+                break
+
+    compact = getCompactness(border, len(cluster.nodes))
+
+    return compact
+
+
+def printDistricts(graph):
+    outString = [["ID", "Population", "PopulationVariation", "Compactness"]]
+
+    for cluster in graph.clusters:
+        neighborsString = "["
+        nodesString = "["
+
+        for neighbor in cluster.neighbors:
+            if neighbor != cluster.neighbors[-1]:
+                neighborsString += str(neighbor.id) + ","
+            else:
+                neighborsString += str(neighbor.id) + "]"
+
+        for node in cluster.nodes:
+            if node != cluster.nodes[-1]:
+                nodesString += str(node.id) + ","
+            else:
+                nodesString += str(node.id) + "]"
+
+        outString.append([str(cluster.id), str(cluster.pop), str(abs(cluster.pop - graph.idealPop)), str(getCompact(cluster))])
+
+    print('{:<8} {:<8}  {:<8}  {:<8}'.format(*outString[0]))
+
+    for i in range(1, len(outString)):
+        print('{:<8} {:<8}     {:<8}            {:<8}'.format(*outString[i]))
+    print("--------------------------------------------------------------------------")
+
+
 # Algorithm phase 2
 def rebalance(graph, iterationLimit):
     n = 0
@@ -197,23 +230,21 @@ def rebalance(graph, iterationLimit):
         # use case 30. Generate a random districting satisfying constraints (required)
         clusterOne = random.choice(graph.clusters)
         clusterTwo = random.choice(clusterOne.neighbors)
-        oldVariation = abs(clusterOne.pop - clusterTwo.pop)  # old score
-        print("Selected cluster[" + str(clusterOne.id) + "] and cluster[" + str(clusterTwo.id) + "]")
+        # old score
+        oldVariation = abs(clusterOne.pop - clusterTwo.pop)
+        oldCompact = getCompact(clusterOne) + getCompact(clusterTwo)
 
         # assume to merge the clusters, which means, the merged cluster is "imaginary"
         mergedCluster = merge(clusterOne, clusterTwo)
 
         # use case 31. Generate a spanning tree of the combined sub-graph above (required)
-        print("Generating Spinning Tree...")
         ST = generateTree(mergedCluster)
 
         # use case 33. Generate a feasible set of edges in the spanning tree to cut (required)
-        print("Spanning Tree: " + str(ST.edges))
-        print("Finding an feasible edge...")
-        cutEdge = findEdge(graph, mergedCluster, ST, oldVariation)
+        cutEdge = findEdge(graph, ST, oldVariation, oldCompact)
 
         if cutEdge == None:
-            print("Feasible edge couldn't be found. Leave the original clusters as they were\n")
+            continue
         else:
             # merge the clusters in real
             combine(clusterOne, clusterTwo, graph)
@@ -221,7 +252,6 @@ def rebalance(graph, iterationLimit):
             # use case 34. Cut the edge in the combined sub-graph (required)
             split(graph, clusterOne, cutEdge, ST)
 
-            graph.printClusters()
-            print("--------------------------------------------------------------------------")
+            printDistricts(graph)
 
             n += 1
