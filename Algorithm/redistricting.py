@@ -121,12 +121,12 @@ def findEdge(graph, ST, oldDifference, oldCompact):
         # use case 35. Repeat the steps above until you generate satisfy the termination condition (required)
         if isAcceptable(graph, popOne, compactOne) and isAcceptable(graph, popTwo,
                                                                     compactTwo):  # if acceptable <-dont forget allAcceptable
-            print("Edge selected to be cut: " + str(cutEdge))
-            print("new variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
+            #print("Edge selected to be cut: " + str(cutEdge))
+            #print("new variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
             return cutEdge
         if newDifference < oldDifference:  # if improved <-dont forget compactness
-            print("Edge selected to be cut: " + str(cutEdge))
-            print("new variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
+            #print("Edge selected to be cut: " + str(cutEdge))
+            #print("new variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
             return cutEdge
         if len(treeEdges) == 0:
             return None
@@ -136,7 +136,7 @@ def split(graph, mergedCluster, cutEdge, ST):
     # cut the edge
     oneID, twoID = cutEdge
     ST.remove_edge(oneID, twoID)
-    print("new clusters[" + str(oneID) + "] and [" + str(twoID) + "] generating...\n")
+    #print("new clusters[" + str(oneID) + "] and [" + str(twoID) + "] generating...\n")
 
     # generate new clusters
     newClusterOne, newClusterTwo = getNewClusters(graph, ST, cutEdge)
@@ -254,7 +254,7 @@ def redistricting(graph, iterationLimit):
         # use case 30. Generate a random districting satisfying constraints (required)
         clusterOne = random.choice(graph.clusters)
         clusterTwo = random.choice(clusterOne.neighbors)
-        print("Selected cluster[" + str(clusterOne.id) + "] and cluster[" + str(clusterTwo.id) + "]")
+        #print("Selected cluster[" + str(clusterOne.id) + "] and cluster[" + str(clusterTwo.id) + "]")
 
         # old score
         oldVariation = abs(clusterOne.pop - clusterTwo.pop)
@@ -267,7 +267,7 @@ def redistricting(graph, iterationLimit):
         ST = generateTree(mergedCluster)
 
         # use case 33. Generate a feasible set of edges in the spanning tree to cut (required)
-        print("Spanning Tree: " + str(ST.edges))
+        #print("Spanning Tree: " + str(ST.edges))
         cutEdge = findEdge(graph, ST, oldVariation, oldCompact)
 
         if cutEdge != None:
@@ -277,10 +277,10 @@ def redistricting(graph, iterationLimit):
             # use case 34. Cut the edge in the combined sub-graph (required)
             split(graph, mergedCluster, cutEdge, ST)
 
-            # printDistricts(graph)
-            printDistrictsForTest(graph)
-        else:
-            print("Feasible edge couldn't be found. Leave the original clusters as they were\n")
-            print("--------------------------------------------------------------------------")
+            printDistricts(graph)
+            # printDistrictsForTest(graph)
+        #else:
+        #    print("Feasible edge couldn't be found. Leave the original clusters as they were\n")
+        #    print("--------------------------------------------------------------------------")
 
         n += 1

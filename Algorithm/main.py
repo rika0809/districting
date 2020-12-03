@@ -3,7 +3,7 @@ from redistricting import redistricting, printDistricts
 from seed import generateSeed
 from graph import Graph, Node
 
-iterationLimit = 200
+iterationLimit = 10
 
 GA = 'GA_precincts_simplified_plus (1).json'
 districtsGA = 14
