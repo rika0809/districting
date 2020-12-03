@@ -1,7 +1,7 @@
-import random
 import networkx as nx
-from graph import Cluster
-from seed import combine
+from graph import *
+from seed import *
+from main import *
 
 MERGEDCLUSTERID = 9999
 
@@ -15,16 +15,6 @@ def generateTree(cluster):
     ST.add_edges_from(list(spanningTree))
 
     return ST
-
-
-# if a single cluster is acceptable?
-def isAcceptable(graph, cluster):
-    upper = graph.upperBound
-    lower = graph.lowerBound
-    if upper >= cluster.pop >= lower:
-        return True
-    else:
-        return False
 
 
 # create new cluster
@@ -104,8 +94,8 @@ def getPopAndComp(graph, nodes):
 def findEdge(graph, ST, oldDifference, oldCompact):
     # use case 32. Calculate the acceptability of each newly generated sub-graph (required)
     treeEdges = list(ST.edges)
-    upper = graph.upperBound
-    lower = graph.lowerBound
+    upper = graph.upper
+    lower = graph.lower
     notFind = True
 
     while (notFind):
@@ -125,8 +115,9 @@ def findEdge(graph, ST, oldDifference, oldCompact):
         newCompact = compactOne + compactTwo
 
         ST.add_edge(oneID, twoID)
+
         # use case 35. Repeat the steps above until you generate satisfy the termination condition (required)
-        if upper >= popOne >= lower and upper >= popTwo >= lower:  # if acceptable
+        if isAcceptable(graph, popOne, compactOne) and isAcceptable(graph, popTwo, compactTwo):  # if acceptable
             return cutEdge
         if newDifference < oldDifference and newCompact > oldCompact:  # if improved
             return cutEdge
@@ -192,6 +183,15 @@ def getCompact(cluster):
     compact = getCompactness(border, len(cluster.nodes))
 
     return compact
+
+
+def isAcceptable(graph, pop, comp):
+    upper = graph.upper
+    lower = graph.lower
+    if upper >= pop >= lower and comp > graph.compact:
+        return True
+    else:
+        return False
 
 
 def printDistricts(graph):

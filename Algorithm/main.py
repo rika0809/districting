@@ -1,17 +1,19 @@
 import json
-from redistricting import rebalance
-from redistricting import printDistricts
+from redistricting import *
 from seed import generateSeed
 from graph import Graph, Node
 
-path = 'GA_precincts_simplified_plus (1).json'
+GA = 'GA_precincts_simplified_plus (1).json'
+districtsGA = 14
+popDifference = 0.1
+compactness = 1.5
 
 if __name__ == '__main__':
     # import data
-    with open(path) as f:
+    with open(GA) as f:
         data = json.load(f)
 
-    graph = Graph(14, 0.1) # number of districts=14 ,1/2population variation: 0.9ideal~1.1ideal
+    graph = Graph(districtsGA, popDifference, compactness)
 
     for i in range(len(data['features'])):
         node = Node(data['features'][i]['properties']['ID'], data['features'][i]['properties']['TOTPOP'])
@@ -24,15 +26,17 @@ if __name__ == '__main__':
         for neighborId in neighborsId:
             graph.addEdge(id, neighborId)
 
-    graph.idealPop = int(graph.pop/graph.numCluster)
+    graph.idealPop = graph.getIdealPop()
+    graph.upper = graph.getUpper()
+    graph.lower = graph.getLower()
 
     # generate seed plan
     print("Generating seed plan...\n")
     generateSeed(graph)
 
     print("Ideal population: " + str(graph.idealPop))
-    print("Population variation: " + str(2 * graph.populationVariation))
-    print("Population valid range: " + str(graph.lowerBound) + "-" + str(graph.upperBound))
+    print("Population variation: " + str(graph.popDifference))
+    print("Population valid range: " + str(graph.lower) + "-" + str(graph.upper))
     print('\n')
     print("Seed plan:")
     printDistricts(graph)
@@ -40,5 +44,5 @@ if __name__ == '__main__':
     # re-balance for 30 iterations
     print("\n\nRebalance...\n")
     print("--------------------------------------------------------------------------")
-    rebalance(graph, 500)
+    rebalance(graph, 10)
 

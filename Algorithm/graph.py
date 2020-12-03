@@ -50,17 +50,18 @@ class Cluster:
 
 
 class Graph:
-    def __init__(self, numCluster, populationVariation):
+    def __init__(self, numCluster, popDifference, compact):
         self.nodes = []
         self.nodesDic = {}
         self.clusters = []
         self.edges = []
-        self.pop = 0
         self.numCluster = numCluster
-        self.populationVariation = populationVariation
-        self.lowerBound = 0
-        self.upperBound = 0
+        self.pop = 0
+        self.lower = 0
+        self.upper = 0
         self.idealPop = 0
+        self.popDifference = popDifference
+        self.compact = compact
 
     def findCluster(self, node):
         for cluster in self.clusters:
@@ -79,7 +80,6 @@ class Graph:
         self.nodesDic[node.id] = node
         self.clusters.append(Cluster(node))
         self.pop += node.pop
-        self.updateBounds()
 
     def addEdge(self, uid, vid):
         u = self.findNode(uid)
@@ -104,14 +104,16 @@ class Graph:
         for uid, vid in edgeForms:
             self.addEdge(uid, vid)
 
-    def totPop(self):
-        return self.pop
-
     def removeCluster(self, cluster):
         self.clusters.remove(cluster)
 
-    def updateBounds(self):
-        ideal = self.pop/self.numCluster
-        self.lowerBound = int(ideal - ideal * self.populationVariation)
-        self.upperBound = int(ideal + ideal * self.populationVariation)
+    def getUpper(self):
+        return int(self.pop + self.pop * self.popDifference * 0.5)
+
+    def getLower(self):
+        return int(self.pop + self.pop * self.popDifference * 0.5)
+
+    def getIdealPop(self):
+        return int(self.pop/self.numCluster)
+
 
