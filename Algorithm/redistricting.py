@@ -114,9 +114,9 @@ def findEdge(graph, ST, oldDifference, oldCompact):
         ST.add_edge(oneID, twoID)
 
         # use case 35. Repeat the steps above until you generate satisfy the termination condition (required)
-        if isAcceptable(graph, popOne, compactOne) and isAcceptable(graph, popTwo, compactTwo):  # if acceptable
+        if isAcceptable(graph, popOne, compactOne) and isAcceptable(graph, popTwo, compactTwo):  # if acceptable <-dont forget allAcceptable
             return cutEdge
-        if newDifference < oldDifference:  # if improved
+        if newDifference < oldDifference:  # if improved <-dont forget compactness
             return cutEdge
         if len(treeEdges)==0:
             return None
