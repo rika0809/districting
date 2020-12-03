@@ -16,7 +16,6 @@ def generateTree(cluster):
 
     return ST
 
-
 # if a single cluster is acceptable?
 def isAcceptable(graph, cluster):
     upper = graph.upperBound
@@ -82,15 +81,36 @@ def getNewClusters(graph, ST, cutEdge):
     return newClusterOne, newClusterTwo
 
 
+def getCompactness(border, totalNodes):
+    return 1 - (border/totalNodes)
+
+
+def getPopAndComp(graph, nodes):
+    pop = 0
+    border = 0
+    totalNodes = len(nodes)
+
+    for nodeId in nodes:
+        node = graph.nodesDic[nodeId]
+        pop += node.pop
+        for neighborNode in node.neighbors:
+            if neighborNode.id not in nodes:
+                border += 1
+
+    compact = getCompactness(border, totalNodes)
+
+    return pop, compact
+
+
 def findEdge(graph, mergedCluster, ST, oldDifference):
     # use case 32. Calculate the acceptability of each newly generated sub-graph (required)
     treeEdges = list(ST.edges)
     totPop = mergedCluster.pop
     upper = graph.upperBound
     lower = graph.lowerBound
+    totalNode = len(mergedCluster.nodes)
 
     while (1):
-        a = 0
         # randomly chose an edge to cut
         cutEdge = random.choice(treeEdges)
         treeEdges.remove(cutEdge)
@@ -102,11 +122,10 @@ def findEdge(graph, mergedCluster, ST, oldDifference):
         nodesTwo = list(set(ST.nodes) - set(nodesOne))
 
         # calculate new population score
-        popOne = 0
-        for node in nodesOne:
-            popOne += graph.nodesDic[node].pop
-        popTwo = totPop - popOne
+        popOne, compactOne = getPopAndComp(graph, nodesOne)
+        popTwo, compactTwo = getPopAndComp(graph, nodesOne)
         newDifference = abs(popOne - popTwo)
+        newCompact = compactOne + compactTwo
 
         ST.add_edge(oneID, twoID)
         # use case 35. Repeat the steps above until you generate satisfy the termination condition (required)

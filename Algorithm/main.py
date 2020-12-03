@@ -39,5 +39,5 @@ if __name__ == '__main__':
     # re-balance for 30 iterations
     print("\n\nRebalance...\n")
     print("--------------------------------------------------------------------------")
-    rebalance(graph, 300)
+    rebalance(graph, 10)
 

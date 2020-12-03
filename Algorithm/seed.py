@@ -2,9 +2,10 @@ import random
 
 
 def combine(cluster, target, graph):
-    #  update properties. Add all the properties of the target on the cluster.
+    #  update properties. Add all the properties of the target on the source cluster.
     cluster.nodes = cluster.nodes + target.nodes
     cluster.pop = cluster.pop + target.pop
+    cluster.edges = cluster.edges + target.edges
     cluster.updateEdges()
 
     # update cluster's neighbors and surrounded clusters's neighbors
@@ -25,9 +26,6 @@ def combine(cluster, target, graph):
 # use case 29. Generate seed districting (required)
 def generateSeed(graph):
     n = graph.numCluster
-
-    for cluster in graph.clusters:
-        cluster.updateEdges()
 
     while len(graph.clusters) != n:  # until n districts on graphs
         clusters = graph.clusters
