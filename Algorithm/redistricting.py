@@ -49,7 +49,7 @@ def updateNeighbors(graph, mergedCluster, clusterOne, clusterTwo):
                     if clusterTwo not in neighborCluster.neighbors:
                         neighborCluster.neighbors.append(clusterTwo)
 
-    # add each other as neighbor
+    # add each other to neighbors
     clusterOne.neighbors.append(clusterTwo)
     clusterTwo.neighbors.append(clusterOne)
 
@@ -58,7 +58,7 @@ def getNewClusters(graph, ST, cutEdge):
     oneID, twoID = cutEdge
 
     # find nodes on the edge to be cut
-    nodesOne = list(ST.subgraph(c).copy() for c in nx.connected_components(ST))[0].nodes
+    nodesOne = max(nx.connected_components(ST), key=len)
     nodesTwo = list(set(ST.nodes) - set(nodesOne))
 
     # create new clusters
@@ -116,7 +116,7 @@ def findEdge(graph, ST, oldDifference, oldCompact):
         # use case 35. Repeat the steps above until you generate satisfy the termination condition (required)
         if isAcceptable(graph, popOne, compactOne) and isAcceptable(graph, popTwo, compactTwo):  # if acceptable
             return cutEdge
-        if newDifference < oldDifference and newCompact > oldCompact:  # if improved
+        if newDifference < oldDifference:  # if improved
             return cutEdge
         if len(treeEdges)==0:
             return None
@@ -133,10 +133,9 @@ def split(graph, mergedCluster, cutEdge, ST):
     # update new clusters' and surrounded cluster's neighbors
     updateNeighbors(graph, mergedCluster, newClusterOne, newClusterTwo)
 
-    # erase the merged cluster from the graph
-    for cluster in graph.clusters:
-        if mergedCluster in cluster.neighbors:
-            cluster.removeNeighbor(mergedCluster)
+    # clean the graph
+    for neighborCluster in mergedCluster.neighbors:
+        neighborCluster.removeNeighbor(mergedCluster)
     graph.removeCluster(mergedCluster)
 
     # add new clusters on graph
@@ -148,22 +147,8 @@ def merge(clusterOne, clusterTwo):
     # create an imaginary cluster
     mergedCluster = Cluster()
 
-    #  update properties
     mergedCluster.nodes = clusterOne.nodes + clusterTwo.nodes
-    mergedCluster.pop = clusterOne.pop + clusterTwo.pop
     mergedCluster.updateEdges()
-
-    #  collect surrounded cluster as neighbors
-    for neighborCluster in clusterOne.neighbors:
-        if neighborCluster != clusterTwo and neighborCluster not in mergedCluster.neighbors:
-            mergedCluster.neighbors.append(neighborCluster)
-
-    for neighborCluster in clusterTwo.neighbors:
-        if neighborCluster != clusterOne and neighborCluster not in mergedCluster.neighbors:
-            mergedCluster.neighbors.append(neighborCluster)
-
-    # give an id
-    mergedCluster.id = MERGEDCLUSTERID
 
     return mergedCluster
 
@@ -227,11 +212,12 @@ def redistricting(graph, iterationLimit):
         # use case 30. Generate a random districting satisfying constraints (required)
         clusterOne = random.choice(graph.clusters)
         clusterTwo = random.choice(clusterOne.neighbors)
+
         # old score
         oldVariation = abs(clusterOne.pop - clusterTwo.pop)
         oldCompact = getCompact(clusterOne) + getCompact(clusterTwo)
 
-        # assume to merge the clusters, which means, the merged cluster is "imaginary"
+        # create an "imaginary" cluster
         mergedCluster = merge(clusterOne, clusterTwo)
 
         # use case 31. Generate a spanning tree of the combined sub-graph above (required)
@@ -243,11 +229,11 @@ def redistricting(graph, iterationLimit):
         if cutEdge == None:
             continue
         else:
-            # merge the clusters in real
-            combine(clusterOne, clusterTwo, graph)
+            # merge the clusters
+            mergedCluster = combine(clusterOne, clusterTwo, graph)
 
             # use case 34. Cut the edge in the combined sub-graph (required)
-            split(graph, clusterOne, cutEdge, ST)
+            split(graph, mergedCluster, cutEdge, ST)
 
             printDistricts(graph)
 
