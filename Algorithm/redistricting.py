@@ -94,8 +94,6 @@ def getPopAndComp(graph, nodes):
 def findEdge(graph, ST, oldDifference, oldCompact):
     # use case 32. Calculate the acceptability of each newly generated sub-graph (required)
     treeEdges = list(ST.edges)
-    upper = graph.upper
-    lower = graph.lower
     notFind = True
 
     while (notFind):
