@@ -1,20 +1,21 @@
 import json
-from redistricting import *
+from redistricting import redistricting, printDistricts
 from seed import generateSeed
 from graph import Graph, Node
 
 GA = 'GA_precincts_simplified_plus (1).json'
 districtsGA = 14
+
 popDifference = 0.1
 compactness = 1.5
 
-if __name__ == '__main__':
-    # import data
-    with open(GA) as f:
-        data = json.load(f)
+with open(GA) as f:
+    data = json.load(f)
 
-    graph = Graph(districtsGA, popDifference, compactness)
+graph = Graph(districtsGA, popDifference, compactness)
 
+
+def main(graph, data):
     for i in range(len(data['features'])):
         node = Node(data['features'][i]['properties']['ID'], data['features'][i]['properties']['TOTPOP'])
         graph.addNode(node)
@@ -44,5 +45,9 @@ if __name__ == '__main__':
     # re-balance for 30 iterations
     print("\n\nRebalance...\n")
     print("--------------------------------------------------------------------------")
-    rebalance(graph, 10)
+    redistricting(graph, 10)
+
+
+if __name__ == '__main__':
+    main(graph, data)
 

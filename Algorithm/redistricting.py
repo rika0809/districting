@@ -1,7 +1,6 @@
 import networkx as nx
 from graph import *
 from seed import *
-from main import *
 
 MERGEDCLUSTERID = 9999
 
@@ -221,7 +220,7 @@ def printDistricts(graph):
 
 
 # Algorithm phase 2
-def rebalance(graph, iterationLimit):
+def redistricting(graph, iterationLimit):
     n = 0
 
     while n < iterationLimit:  # use case 36. Terminate a single districting calculation (required)
