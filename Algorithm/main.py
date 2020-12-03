@@ -3,6 +3,8 @@ from redistricting import redistricting, printDistricts
 from seed import generateSeed
 from graph import Graph, Node
 
+iterationLimit = 10
+
 GA = 'GA_precincts_simplified_plus (1).json'
 districtsGA = 14
 
@@ -31,7 +33,6 @@ def main(graph, data):
     graph.upper = graph.getUpper()
     graph.lower = graph.getLower()
 
-    # generate seed plan
     print("Generating seed plan...\n")
     generateSeed(graph)
 
@@ -42,10 +43,9 @@ def main(graph, data):
     print("Seed plan:")
     printDistricts(graph)
 
-    # re-balance for 30 iterations
     print("\n\nRebalance...\n")
     print("--------------------------------------------------------------------------")
-    redistricting(graph, 10)
+    redistricting(graph, iterationLimit)
 
 
 if __name__ == '__main__':

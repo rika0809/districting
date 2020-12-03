@@ -88,10 +88,10 @@ class Graph:
         self.clusters.remove(cluster)
 
     def getUpper(self):
-        return int(self.pop + self.pop * self.popDifference * 0.5)
+        return int(self.idealPop + self.idealPop * self.popDifference * 0.5)
 
     def getLower(self):
-        return int(self.pop + self.pop * self.popDifference * 0.5)
+        return int(self.idealPop - self.idealPop * self.popDifference * 0.5)
 
     def getIdealPop(self):
         return int(self.pop/self.numCluster)
