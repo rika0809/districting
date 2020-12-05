@@ -1,14 +1,17 @@
 import networkx as nx
 from graph import *
 from seed import *
+import random
 
 MERGEDCLUSTERID = 9999
 
 
 def generateTree(cluster):
     G = nx.Graph()
-    G.add_edges_from(cluster.edges)
+    edges = cluster.edges
+    random.shuffle(edges)
 
+    G.add_edges_from(edges)
     spanningTree = nx.tree.minimum_spanning_edges(G, algorithm="kruskal", data=False)
     ST = nx.Graph()
     ST.add_edges_from(list(spanningTree))
@@ -95,12 +98,48 @@ def getPopAndComp(graph, nodes):
     return pop, compact
 
 
+def calculateScore(graph, oldDifference, oldCompact, newDifference, newCompact):
+    score = 0
+    popPercent = (abs(newDifference - oldDifference) / oldDifference)
+    compPercent = (abs(newCompact - oldCompact) / oldCompact)
+
+    if oldCompact > 2 * graph.compact and oldDifference >= 2 * (graph.upper-graph.idealPop):
+        compPercent = 0
+
+    if oldCompact <= 2 * graph.compact and oldDifference < 2 * (graph.upper - graph.idealPop):
+        popPercent = 0
+
+    if oldDifference < newDifference:  # worse
+        score -= popPercent
+    else:
+        score += popPercent
+
+    if newCompact < oldCompact:  # worse
+        score -= compPercent
+    else:
+        score += compPercent
+
+    #print("old compact: " + str(oldCompact) + ", old difference: " + str(oldDifference) +
+    #      ", new compact: " +str(newCompact) + ", new difference: " + str(newDifference) + ", score: " + str(score))
+
+    return score
+
+
+def ifImproved(graph, oldDifference, oldCompact, newDifference, newCompact):
+    score = calculateScore(graph, oldDifference, oldCompact, newDifference, newCompact)
+
+    if score > 0:
+        return True
+    else:
+        return False
+
+
 def findEdge(graph, ST, oldDifference, oldCompact):
     # use case 32. Calculate the acceptability of each newly generated sub-graph (required)
     treeEdges = list(ST.edges)
-    notFind = True
+    notFind = 0
 
-    while (notFind):
+    while (notFind < 100):  # after 100 iterations if not found than stop
         # randomly chose an edge to cut
         cutEdge = random.choice(treeEdges)
         treeEdges.remove(cutEdge)
@@ -120,15 +159,14 @@ def findEdge(graph, ST, oldDifference, oldCompact):
 
         # use case 35. Repeat the steps above until you generate satisfy the termination condition (required)
         if isAcceptable(graph, popOne, compactOne) and isAcceptable(graph, popTwo,
-                                                                    compactTwo):  # if acceptable <-dont forget allAcceptable
-            #print("Edge selected to be cut: " + str(cutEdge))
-            #print("new variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
+                                                                    compactTwo):
+            # print("new variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
             return cutEdge
-        if newDifference < oldDifference:  # if improved <-dont forget compactness
-            #print("Edge selected to be cut: " + str(cutEdge))
-            #print("new variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
+        if ifImproved(graph, oldDifference, oldCompact, newDifference, newCompact):
+            # print("Edge selected to be cut: " + str(cutEdge))
+            # print("new variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
             return cutEdge
-        if len(treeEdges) == 0:
+        if len(treeEdges)==0:
             return None
 
 
@@ -136,7 +174,7 @@ def split(graph, mergedCluster, cutEdge, ST):
     # cut the edge
     oneID, twoID = cutEdge
     ST.remove_edge(oneID, twoID)
-    #print("new clusters[" + str(oneID) + "] and [" + str(twoID) + "] generating...\n")
+    # print("new clusters[" + str(oneID) + "] and [" + str(twoID) + "] generating...\n")
 
     # generate new clusters
     newClusterOne, newClusterTwo = getNewClusters(graph, ST, cutEdge)
@@ -185,6 +223,17 @@ def isAcceptable(graph, pop, comp):
         return True
     else:
         return False
+
+
+def ifAllAcceptable(graph):
+    upper = graph.upper
+    lower = graph.lower
+
+    for cluster in graph.clusters:
+        comp = getCompact(cluster)
+        if not (upper >= cluster.pop >= lower and comp > graph.compact):
+            return False
+    return True
 
 
 def printDistricts(graph):
@@ -248,6 +297,8 @@ def printDistrictsForTest(graph):
 
 # Algorithm phase 2
 def redistricting(graph, iterationLimit):
+    allAcceptableIteration = 0
+    careAllAcceptable = True
     n = 0
 
     while n < iterationLimit:  # use case 36. Terminate a single districting calculation (required)
@@ -257,7 +308,7 @@ def redistricting(graph, iterationLimit):
         #print("Selected cluster[" + str(clusterOne.id) + "] and cluster[" + str(clusterTwo.id) + "]")
 
         # old score
-        oldVariation = abs(clusterOne.pop - clusterTwo.pop)
+        oldDifference = abs(clusterOne.pop - clusterTwo.pop)
         oldCompact = getCompact(clusterOne) + getCompact(clusterTwo)
 
         # create an "imaginary" cluster
@@ -267,8 +318,8 @@ def redistricting(graph, iterationLimit):
         ST = generateTree(mergedCluster)
 
         # use case 33. Generate a feasible set of edges in the spanning tree to cut (required)
-        #print("Spanning Tree: " + str(ST.edges))
-        cutEdge = findEdge(graph, ST, oldVariation, oldCompact)
+        # print("Spanning Tree: " + str(ST.edges))
+        cutEdge = findEdge(graph, ST, oldDifference, oldCompact)
 
         if cutEdge != None:
             # merge the clusters
@@ -279,8 +330,17 @@ def redistricting(graph, iterationLimit):
 
             printDistricts(graph)
             # printDistrictsForTest(graph)
-        #else:
-        #    print("Feasible edge couldn't be found. Leave the original clusters as they were\n")
-        #    print("--------------------------------------------------------------------------")
 
-        n += 1
+            if careAllAcceptable:
+                allAcceptable = ifAllAcceptable(graph)
+                if allAcceptable:
+                    allAcceptableIteration = n
+                    careAllAcceptable = False
+
+            n += 1
+        else:
+            print("Feasible edge couldn't be found. Leave the original clusters as they were\n")
+            print("--------------------------------------------------------------------------")
+            continue
+
+    print(str(n) + " iterations over. All clusters acceptable after: " + str(allAcceptableIteration) + " iterations")

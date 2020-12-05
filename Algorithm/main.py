@@ -3,13 +3,19 @@ from redistricting import redistricting, printDistricts
 from seed import generateSeed
 from graph import Graph, Node
 
-iterationLimit = 10
+iterationLimit = 500
 
-GA = 'GA_precincts_simplified_plus (1).json'
+GA = 'GA.json'
 districtsGA = 14
 
-popDifference = 0.1
-compactness = 1.5
+MI = 'MI.json'
+districtsMI = 4
+
+LA = 'LA.json'
+districtsLA = 6
+
+popDifference = 0.015
+compactness = 3
 
 with open(GA) as f:
     data = json.load(f)
@@ -39,6 +45,7 @@ def main(graph, data):
     print("Ideal population: " + str(graph.idealPop))
     print("Population variation: " + str(graph.popDifference))
     print("Population valid range: " + str(graph.lower) + "-" + str(graph.upper))
+    print("Compactness goal: " + str(compactness))
     print('\n')
     print("Seed plan:")
     printDistricts(graph)
