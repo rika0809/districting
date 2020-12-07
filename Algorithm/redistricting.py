@@ -3,7 +3,10 @@ from graph import *
 from seed import *
 import random
 
-MERGEDCLUSTERID = 9999
+
+improvingEdge = 0
+acceptableEdge = 0
+noneEdge = 0
 
 
 def generateTree(cluster):
@@ -77,7 +80,7 @@ def getNewClusters(graph, ST, cutEdge):
 
 
 def getCompactness(border, totalNodes):
-    return totalNodes / border
+    return 1 - (border/totalNodes)
 
 
 def getPopAndComp(graph, nodes):
@@ -100,8 +103,13 @@ def getPopAndComp(graph, nodes):
 
 def calculateScore(graph, oldDifference, oldCompact, newDifference, newCompact):
     score = 0
-    popPercent = (abs(newDifference - oldDifference) / oldDifference)
-    compPercent = (abs(newCompact - oldCompact) / oldCompact)
+    popPercent = 0
+    compPercent = 0
+
+    if oldDifference != 0:
+        popPercent = (abs(newDifference - oldDifference) / oldDifference)
+    if oldCompact !=0:
+        compPercent = (abs(newCompact - oldCompact) / oldCompact)
 
     if oldCompact > 2 * graph.compact and oldDifference >= 2 * (graph.upper-graph.idealPop):
         compPercent = 0
@@ -138,6 +146,10 @@ def findEdge(graph, ST, oldDifference, oldCompact):
     # use case 32. Calculate the acceptability of each newly generated sub-graph (required)
     treeEdges = list(ST.edges)
     notFind = 0
+    global improvingEdge
+    global acceptableEdge
+    global noneEdge
+
 
     while (notFind < 100):  # after 100 iterations if not found than stop
         # randomly chose an edge to cut
@@ -160,13 +172,16 @@ def findEdge(graph, ST, oldDifference, oldCompact):
         # use case 35. Repeat the steps above until you generate satisfy the termination condition (required)
         if isAcceptable(graph, popOne, compactOne) and isAcceptable(graph, popTwo,
                                                                     compactTwo):
-            # print("new variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
+            #print("Both clusters are acceptable.")
+            #print("Edge selected to be cut: " + str(cutEdge))
+            acceptableEdge += 1
             return cutEdge
         if ifImproved(graph, oldDifference, oldCompact, newDifference, newCompact):
-            # print("Edge selected to be cut: " + str(cutEdge))
-            # print("new variation: " + str(newDifference) + ", old variation: " + str(oldDifference))
+            #print("Edge selected to be cut: " + str(cutEdge))
+            improvingEdge +=1
             return cutEdge
         if len(treeEdges)==0:
+            noneEdge += 1
             return None
 
 
@@ -192,7 +207,7 @@ def split(graph, mergedCluster, cutEdge, ST):
     graph.clusters.append(newClusterTwo)
 
 
-def merge(clusterOne, clusterTwo):
+def merge(graph, clusterOne, clusterTwo):
     # create an imaginary cluster
     mergedCluster = Cluster()
 
@@ -262,7 +277,6 @@ def printDistricts(graph):
 
     for i in range(1, len(outString)):
         print('{:<8} {:<8}     {:<8}            {:<8}'.format(*outString[i]))
-    print("--------------------------------------------------------------------------")
 
 
 def printDistrictsForTest(graph):
@@ -312,13 +326,13 @@ def redistricting(graph, iterationLimit):
         oldCompact = getCompact(clusterOne) + getCompact(clusterTwo)
 
         # create an "imaginary" cluster
-        mergedCluster = merge(clusterOne, clusterTwo)
+        mergedCluster = merge(graph, clusterOne, clusterTwo)
 
         # use case 31. Generate a spanning tree of the combined sub-graph above (required)
         ST = generateTree(mergedCluster)
 
         # use case 33. Generate a feasible set of edges in the spanning tree to cut (required)
-        # print("Spanning Tree: " + str(ST.edges))
+        #print("Spanning Tree: " + str(ST.edges))
         cutEdge = findEdge(graph, ST, oldDifference, oldCompact)
 
         if cutEdge != None:
@@ -329,7 +343,7 @@ def redistricting(graph, iterationLimit):
             split(graph, mergedCluster, cutEdge, ST)
 
             printDistricts(graph)
-            # printDistrictsForTest(graph)
+            #printDistrictsForTest(graph)
 
             if careAllAcceptable:
                 allAcceptable = ifAllAcceptable(graph)
@@ -340,7 +354,17 @@ def redistricting(graph, iterationLimit):
             n += 1
         else:
             print("Feasible edge couldn't be found. Leave the original clusters as they were\n")
-            print("--------------------------------------------------------------------------")
-            continue
 
-    print(str(n) + " iterations over. All clusters acceptable after: " + str(allAcceptableIteration) + " iterations")
+        print("--------------------------------------------------------------------------")
+
+    totalEdge = acceptableEdge + improvingEdge + noneEdge
+    print("Ideal population: " + str(graph.idealPop))
+    print("Population variation: " + str(graph.popDifference))
+    print("Population valid range: " + str(graph.lower) + "-" + str(graph.upper))
+    print("Compactness goal: >" + str(graph.compact) + '\n')
+    printDistricts(graph)
+    print("\nEdges are acceptable: " + str(acceptableEdge) + "(" + str(acceptableEdge/totalEdge*100) + "%)")
+    print("Edges improve the graph: : " + str(improvingEdge) + "(" + str(improvingEdge/totalEdge*100) + "%)")
+    print("Edges are not acceptable and not improve the graph: " + str(noneEdge) + "(" + str(noneEdge/totalEdge*100) + "%)")
+    print(str(n) + " iterations over. All clusters acceptable after: " + str(allAcceptableIteration) + " iterations.")
+

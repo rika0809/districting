@@ -1,9 +1,11 @@
 import json
+import cProfile, pstats
 from redistricting import redistricting, printDistricts
 from seed import generateSeed
 from graph import Graph, Node
 
-iterationLimit = 500
+
+iterationLimit = 10000
 
 GA = 'GA.json'
 districtsGA = 14
@@ -15,38 +17,33 @@ LA = 'LA.json'
 districtsLA = 6
 
 popDifference = 0.015
-compactness = 3
+compactness = 0.3
 
 with open(GA) as f:
     data = json.load(f)
 
 graph = Graph(districtsGA, popDifference, compactness)
 
+for i in range(len(data['features'])):
+    node = Node(data['features'][i]['properties']['ID'], data['features'][i]['properties']['TOTPOP'])
+    graph.addNode(node)
 
-def main(graph, data):
-    for i in range(len(data['features'])):
-        node = Node(data['features'][i]['properties']['ID'], data['features'][i]['properties']['TOTPOP'])
-        graph.addNode(node)
+for i in range(len(data['features'])):
+    id = data['features'][i]['properties']['ID']
+    neighborsId = data['features'][i]['properties']['Neighbors']
 
-    for i in range(len(data['features'])):
-        id = data['features'][i]['properties']['ID']
-        neighborsId = data['features'][i]['properties']['Neighbors']
+    for neighborId in neighborsId:
+        graph.addEdge(id, neighborId)
 
-        for neighborId in neighborsId:
-            graph.addEdge(id, neighborId)
+graph.idealPop = graph.getIdealPop()
+graph.upper = graph.getUpper()
+graph.lower = graph.getLower()
 
-    graph.idealPop = graph.getIdealPop()
-    graph.upper = graph.getUpper()
-    graph.lower = graph.getLower()
+
+def generatePlan(graph, data):
 
     print("Generating seed plan...\n")
     generateSeed(graph)
-
-    print("Ideal population: " + str(graph.idealPop))
-    print("Population variation: " + str(graph.popDifference))
-    print("Population valid range: " + str(graph.lower) + "-" + str(graph.upper))
-    print("Compactness goal: " + str(compactness))
-    print('\n')
     print("Seed plan:")
     printDistricts(graph)
 
@@ -56,5 +53,12 @@ def main(graph, data):
 
 
 if __name__ == '__main__':
-    main(graph, data)
+    profiler = cProfile.Profile()
+    profiler.enable()
+
+    generatePlan(graph, data)
+
+    profiler.enable()
+    state = pstats.Stats(profiler)
+    state.dump_stats('profile.out')
 
