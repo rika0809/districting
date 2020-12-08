@@ -5,7 +5,7 @@ from seed import generateSeed
 from graph import Graph, Node
 
 
-iterationLimit = 10000
+iterationLimit = 50
 
 GA = 'GA.json'
 districtsGA = 14
@@ -16,8 +16,8 @@ districtsMI = 4
 LA = 'LA.json'
 districtsLA = 6
 
-popDifference = 0.015
-compactness = 0.3
+popDifference = 0.03
+compactness = 0.1
 
 with open(GA) as f:
     data = json.load(f)
@@ -40,25 +40,18 @@ graph.upper = graph.getUpper()
 graph.lower = graph.getLower()
 
 
-def generatePlan(graph, data):
-
-    print("Generating seed plan...\n")
+def generatePlan():
     generateSeed(graph)
-    print("Seed plan:")
-    printDistricts(graph)
-
-    print("\n\nRebalance...\n")
-    print("--------------------------------------------------------------------------")
     redistricting(graph, iterationLimit)
 
 
 if __name__ == '__main__':
-    profiler = cProfile.Profile()
-    profiler.enable()
+    #profiler = cProfile.Profile()
+    #profiler.enable()
 
-    generatePlan(graph, data)
+    generatePlan()
 
-    profiler.enable()
-    state = pstats.Stats(profiler)
-    state.dump_stats('profile.out')
+    #profiler.enable()
+    #state = pstats.Stats(profiler)
+    #state.dump_stats('profile.out')
 
